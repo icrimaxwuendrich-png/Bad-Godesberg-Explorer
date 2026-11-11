@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bad Godesberg Explorer – 1.6.2 Alpha</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{--bg:#f3f6fa;--panel:#fff;--ink:#15283d;--muted:#61758a;--brand:#145b75;--accent:#e2a93b;--line:#dce5ed;--shadow:0 8px 28px #18334d12}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}header{background:linear-gradient(120deg,#123c55,#187b91);color:white;padding:25px max(18px,calc((100% - 1200px)/2))}header h1{margin:0 0 5px;font-size:clamp(25px,4vw,36px)}header p{margin:4px 0}.small{font-size:12px;color:var(--muted)}.wrap{max-width:1200px;margin:18px auto;padding:0 14px}.tabs{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}.tab,button{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:9px;padding:9px 13px;font:inherit;cursor:pointer}.tab.active,button.primary{background:var(--brand);border-color:var(--brand);color:#fff}.tab:hover,button:hover{filter:brightness(.97)}.hidden{display:none!important}.layout{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(280px,.85fr);gap:14px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:var(--shadow);min-width:0}.panel h2{margin:0 0 12px}.row{display:flex;align-items:center;gap:10px}.between{justify-content:space-between}.mapframe{height:440px;border-radius:10px;background:#e7edf1;overflow:hidden}.mapnote{font-size:12px;color:var(--muted);margin:9px 0}.field{margin:12px 0}.field label{display:block;font-weight:650;margin-bottom:5px}input,select,textarea{width:100%;padding:10px;border:1px solid #cbd7e1;border-radius:8px;background:white;color:var(--ink);font:inherit}textarea{min-height:90px}.places{display:grid;gap:10px;margin-top:12px}.place{border:1px solid var(--line);border-radius:10px;padding:12px}.place h3{margin:0;font-size:16px}.place p{margin:7px 0}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}.pill{font-size:11px;background:#edf3f6;border-radius:99px;padding:3px 8px;white-space:nowrap}.muted{color:var(--muted)}.notice{background:#fff8e8;border:1px solid #f0dfb5;border-radius:10px;padding:12px}.routegrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}.routebox{border:1px solid var(--line);border-radius:10px;padding:13px}.routebox strong{display:block;margin-bottom:7px}.footer{color:var(--muted);font-size:12px;padding:20px 4px}dialog{border:0;border-radius:14px;padding:22px;width:min(600px,calc(100% - 24px));max-height:85vh;overflow:auto;box-shadow:0 20px 70px #0004}dialog::backdrop{background:#10253688}.close{float:right}.star{color:#bd8412}.bgx-div-icon{background:transparent;border:0}.bgx-marker{width:28px;height:28px;border:3px solid white;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:#267b9b;box-shadow:0 2px 7px #0005;display:grid;place-items:center;color:white;font-weight:bold}.bgx-marker span{transform:rotate(45deg);font-size:15px;line-height:1}.bgx-marker.selected{background:#d93636}.bgx-marker.wish{background:#e6b52c;color:#302300}.bgx-marker.visited{background:#299b58}@media(max-width:800px){.layout{grid-template-columns:1fr}.mapframe{height:350px}.wrap{margin-top:12px}}
+</style>
+</head>
+<body>
+<header><h1>🧭 Bad Godesberg Explorer</h1><p>Dein persönlicher Entdecker- und Mobilitätsguide für Bad Godesberg und Umgebung</p><p class="small" style="color:#d7e8ef">Version 1.6.2 Alpha · Koder-Speicher- und Exportfix</p></header>
+<div class="wrap">
+<nav class="tabs" aria-label="Hauptnavigation">
+<button class="tab active" data-tab="karte">Karte & Orte</button><button class="tab" data-tab="routen">Routenplaner</button><button class="tab" data-tab="favoriten">Meine Orte</button><button class="tab" data-tab="meinerouten">Meine Routen</button><button class="tab" data-tab="daten">Import / Export</button>
+</nav>
+<section id="karte"><div class="layout">
+<div class="panel"><div class="row between"><h2>Karte</h2><span class="small" id="mapstatus">Karte wird vorbereitet …</span></div><div id="map" class="mapframe"></div><p class="mapnote" id="osmstatus">Zusätzliche Einrichtungen werden aus OpenStreetMap geladen …</p><div class="mapnote">🔵 Normaler Ort &nbsp; 🔴 Ausgewählt &nbsp; ⭐ Wunschziel &nbsp; 🟢 ✓ Besucht</div><p class="mapnote">Kartenmaterial © OpenStreetMap-Mitwirkende. Ortsdaten können unvollständig oder veraltet sein.</p></div>
+<div class="panel"><h2>Orte in der Umgebung</h2><div class="field"><label for="search">Ort oder Kategorie suchen</label><input id="search" placeholder="z. B. Schwimmbad, Bahnhof, Godesburg …"></div><div class="field"><label for="cat">Kategorie</label><select id="cat"><option value="">Alle Kategorien</option></select></div><div id="places" class="places"></div></div>
+</div></section>
+<section id="routen" class="hidden"><div class="panel"><h2>Verbindung suchen</h2><p class="muted">Vergleiche ÖPNV, Fußweg und Auto. Internetverbindung erforderlich.</p><div class="layout"><div><div class="field"><label for="from">Start</label><input id="from" list="suggestions" placeholder="Adresse, Haltestelle oder Ort"></div><div class="field"><label for="to">Ziel</label><input id="to" list="suggestions" placeholder="Adresse, Haltestelle oder Ort"></div><datalist id="suggestions"></datalist><div class="field"><label for="depart">Abfahrt (optional)</label><input id="depart" type="datetime-local"></div><div class="actions"><button class="primary" id="goRoute">Verbindungen anzeigen</button><button id="swap">⇅ Tauschen</button></div></div><div class="notice">Fuß- und Autorouten werden über OSRM berechnet. ÖPNV öffnet die Fahrplanauskunft des VRS; echte Live-Verspätungen werden hier nicht eingebettet.</div></div><div id="routeResults" class="routegrid" style="margin-top:16px"></div><div id="routeMap" class="mapframe" style="margin-top:14px"></div></div></section>
+<section id="favoriten" class="hidden"><div class="panel"><h2>Meine Wunschziele & besuchten Orte</h2><p class="muted">Status, Bewertungen und Notizen werden lokal auf diesem Gerät gespeichert.</p><div id="myPlaces" class="places"></div></div></section>
+<section id="meinerouten" class="hidden"><div class="panel"><h2>Meine gespeicherten Routen</h2><div id="savedRoutes" class="places"></div></div></section>
+<section id="daten" class="hidden"><div class="panel"><h2>Deine Daten sichern</h2><p>Exportiere persönliche Markierungen, Bewertungen, Notizen und Routen als JSON-Datei.</p><div class="actions"><button class="primary" id="export">Daten exportieren</button><button id="importBtn">Daten importieren</button><input id="importFile" type="file" accept=".json,application/json" class="hidden"></div><p class="small" id="importStatus"></p>
+<div id="exportFallback" class="field hidden">
+<label for="exportJson">Deine Sicherung (JSON)</label>
+<textarea id="exportJson" readonly spellcheck="false" style="min-height:220px;font:12px/1.45 ui-monospace,monospace"></textarea>
+<div class="actions"><button class="primary" id="copyExport">JSON kopieren</button><button id="selectExport">Alles markieren</button></div>
+<p class="small">Falls Koder keinen Datei-Download zulässt: Text kopieren und in einer Datei mit der Endung .json sichern.</p>
+</div>
+<p class="small">Wenn Koder den Browserspeicher blockiert, bleiben Änderungen nur bis zum Schließen dieser Vorschau erhalten. Exportiere dann regelmäßig eine Sicherung.</p><hr><h3>Datenquellen & Grenzen</h3><p class="small">Karte: OpenStreetMap/Leaflet. Geocoding: Nominatim. Fuß-/Autrouting: OSRM-Demo-Server. ÖPNV: VRS-Fahrplanauskunft. Zusätzliche Schulen, Kitas, Haltestellen und Verwaltungseinrichtungen werden über OpenStreetMap/Overpass geladen.</p></div></section>
+<div class="footer">Bad Godesberg Explorer · Version 1.6.2 Alpha · Externe Kartendienste benötigen Internetzugang. Fahrzeiten sind Schätzwerte.</div></div>
+<dialog id="detail"><button class="close" id="closeDialog">✕</button><div id="detailBody"></div></dialog>
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+"use strict";
+const places=[
+["godesburg","Godesburg","Sehenswürdigkeit",50.6869,7.1588,"Burgruine mit weitem Blick über Bad Godesberg und das Rheintal.","Auf dem Godesberg, Bonn"],
+["kurpark","Kurpark Bad Godesberg","Park",50.6845,7.1535,"Grüne Anlage nahe dem Zentrum.","Am Kurpark, Bonn"],
+["redoute","La Redoute","Kultur",50.6842,7.1559,"Historisches klassizistisches Gebäude im Kurviertel.","Kurfürstenallee 1, Bonn"],
+["bastei","Bastei Rüngsdorf","Sehenswürdigkeit",50.6862,7.1705,"Rheinufer-Orientierungspunkt mit Blick auf den Rhein.","Von-Sandt-Ufer, Bonn"],
+["rheinaue","Rheinufer Rüngsdorf","Natur",50.6818,7.1717,"Uferweg und Grünflächen am Rhein.","Rheinallee, Bonn"],
+["panoramapark","Panoramapark","Park",50.6777,7.1645,"Grünanlage im Bereich Pennenfeld.","Pennenfeld, Bonn"],
+["carstanjen","Haus Carstanjen","Verwaltung",50.6972,7.1514,"Historischer Gebäudekomplex in Plittersdorf.","Martin-Luther-King-Straße, Bonn"],
+["bahnhof","Bahnhof Bad Godesberg","Bahnhof",50.6833,7.1584,"Regionalbahnhof und Anschluss an Bus und Stadtbahn.","Moltkestraße, Bonn"],
+["stadthalle","Stadthalle Bad Godesberg","Kultur",50.6862,7.1552,"Veranstaltungsort nahe dem Zentrum.","Koblenzer Straße, Bonn"],
+["theater","K Schauspielhaus Bad Godesberg","Kultur",50.6856,7.1566,"Theaterstandort im Zentrum.","Am Michaelshof, Bonn"],
+["friesi","Friesi – Hallenbad Friesdorf","Schwimmbad",50.681,7.1327,"Hallenbad in Friesdorf. Öffnungszeiten vor Besuch prüfen.","Margaretenstraße, Bonn"],
+["panoramabad","Panoramabad Rüngsdorf","Schwimmbad",50.6812,7.1681,"Freibad im Ortsteil Rüngsdorf. Saisonbetrieb beachten.","Am Schwimmbad, Bonn"],
+["stadtbahn","Stadtbahn-Haltestelle Bad Godesberg Bahnhof","Haltestelle",50.683,7.158,"Anschluss an Stadtbahn und Bus.","Bahnhof Bad Godesberg"],
+["plitt","Plittersdorf","Ortsteil",50.698,7.1518,"Ortsteil nördlich des Zentrums.","Plittersdorf, Bonn"],
+["muffendorf","Muffendorf","Ortsteil",50.6726,7.16,"Historischer Ortskern mit Fachwerk und engen Gassen.","Muffendorf, Bonn"],
+["mehlem","Mehlem","Ortsteil",50.6632,7.189,"Südlicher Ortsteil am Rhein.","Mehlem, Bonn"],
+["pennenfeld","Pennenfeld","Ortsteil",50.6742,7.169,"Wohngebiet südlich des Zentrums.","Pennenfeld, Bonn"],
+["lannesdorf","Lannesdorf","Ortsteil",50.6667,7.164,"Ortsteil südöstlich des Zentrums.","Lannesdorf, Bonn"],
+["altgodesberg","Alt-Godesberg","Ortsteil",50.6848,7.157,"Historischer Ortskern rund um Zentrum und Godesburg.","Alt-Godesberg, Bonn"],
+["friesdorf","Friesdorf","Ortsteil",50.68,7.132,"Ortsteil westlich des Godesberger Zentrums.","Friesdorf, Bonn"],
+["godesbergnord","Godesberg-Nord","Ortsteil",50.6925,7.157,"Nördlicher Bereich des Stadtbezirks.","Godesberg-Nord, Bonn"],
+["villenv","Godesberg-Villenviertel","Ortsteil",50.69,7.166,"Historisches Villenviertel östlich des Zentrums.","Villenviertel, Bonn"],
+["heiderhof","Heiderhof","Ortsteil",50.66,7.139,"Wohngebiet auf der westlichen Höhe Bad Godesbergs.","Heiderhof, Bonn"],
+["hochkreuz","Hochkreuz","Ortsteil",50.7005,7.133,"Ortsteil im Norden des Stadtbezirks.","Hochkreuz, Bonn"],
+["ruengsdorf","Rüngsdorf","Ortsteil",50.687,7.174,"Rheinnaher Ortsteil zwischen Zentrum und Mehlem.","Rüngsdorf, Bonn"],
+["schweinheim","Schweinheim","Ortsteil",50.666,7.145,"Grüner Ortsteil westlich der Godesburg.","Schweinheim, Bonn"],
+["stadtpark","Stadtpark Bad Godesberg","Park",50.6852,7.1546,"Historischer Landschaftspark im ehemaligen Kurviertel.","Koblenzer Straße, Bonn"],
+["redoutenpark","Redoutenpark","Park",50.6837,7.1546,"Englischer Landschaftspark neben der La Redoute.","Kurfürstenallee, Bonn"],
+["drachensteinpark","Drachensteinpark","Park",50.6682,7.19,"Historischer Park in Mehlem oberhalb des Rheins.","Mainzer Straße, Bonn"],
+["draitschbrunnen","Draitschbrunnen","Sehenswürdigkeit",50.6846,7.1566,"Historische Heilquelle und Trinkbrunnen.","Brunnenallee, Bonn"],
+["michaelskapelle","Michaelskapelle","Kirche",50.6871,7.1597,"Barocke Kapelle nahe der Godesburg.","Auf dem Godesberg, Bonn"],
+["burgfriedhof","Burgfriedhof Bad Godesberg","Friedhof",50.6874,7.1604,"Historischer Friedhof am Fuß der Godesburg.","Auf dem Godesberg, Bonn"],
+["rathaus","Rathaus Bad Godesberg","Verwaltung",50.684,7.1567,"Historisches Rathausensemble und Verwaltungsstandort.","Kurfürstenallee, Bonn"],
+["reduttchen","Redüttchen","Gastronomie",50.684,7.1554,"Historisches Gartenhaus neben der Redoute.","Kurfürstenallee, Bonn"],
+["bibliothek","Bezirksbibliothek Bad Godesberg","Bildung",50.6835,7.1588,"Stadtteilbibliothek an der Moltkestraße.","Moltkestraße, Bonn"],
+["sportpark","Sportpark Pennenfeld","Sport",50.6745,7.1722,"Große städtische Sportanlage.","Mallwitzstraße, Bonn"],
+["deutschesmuseum","Deutsches Museum Bonn","Museum",50.7006,7.1314,"Wissenschafts- und Technikmuseum in Hochkreuz.","Ahrstraße, Bonn"],
+["acg","Amos-Comenius-Gymnasium","Schule",50.6766,7.1646,"Gymnasium an der Behringstraße.","Behringstraße, Bonn"],
+["kag","Konrad-Adenauer-Gymnasium","Schule",50.6775,7.1665,"Städtisches Gymnasium in Bad Godesberg.","Max-Planck-Straße, Bonn"],
+["rheinhotel","Rheinhotel Dreesen","Hotel",50.6879,7.1752,"Traditionshotel direkt am Rhein in Rüngsdorf.","Rheinstraße, Bonn"],
+["hotelkaiserhof","Best Western Hotel Kaiserhof","Hotel",50.6834,7.1597,"Hotel gegenüber dem Bahnhof Bad Godesberg.","Moltkestraße, Bonn"],
+["hotelzumloewen","Hotel zum Löwen","Hotel",50.6838,7.1582,"Hotel nahe Bahnhof und Fußgängerzone.","Von-Groote-Platz, Bonn"],
+["bahnhofmehlem","Bahnhof Bonn-Mehlem","Bahnhof",50.6593,7.1907,"Regionalbahnhof im Süden Bad Godesbergs.","Am Bahnhof Mehlem, Bonn"],
+["rigal","Rigalsche Kapelle","Kirche",50.6876,7.1562,"Historische Kapelle im Villenviertel.","Rüngsdorfer Straße, Bonn"],
+["stmarien","St. Marien Bad Godesberg","Kirche",50.6849,7.1575,"Katholische Kirche im Zentrum Bad Godesbergs.","Burgstraße, Bonn"]
+].map(a=>({id:a[0],name:a[1],cat:a[2],lat:a[3],lon:a[4],desc:a[5],address:a[6]}));
+const $=id=>document.getElementById(id), esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let prefs={},savedRoutes=[],map=null,routeMap=null,markers={},selectedPlaceId=null;
+let storageFallback=false;
+try{prefs=JSON.parse(localStorage.getItem("bgx-prefs")||"{}")||{}}catch(e){prefs={};storageFallback=true}
+try{savedRoutes=JSON.parse(localStorage.getItem("bgx-routes")||"[]")||[]}catch(e){savedRoutes=[];storageFallback=true}
+
+/* Koder-Vorschauen können localStorage blockieren.
+   In diesem Fall bleiben Änderungen während der aktuellen Sitzung im Arbeitsspeicher. */
+function storageMessage(message){
+  const s=$("importStatus");
+  if(s)s.textContent=message;
+}
+function pref(id){const v=prefs[id]||{};return{status:v.status||"",rating:Number(v.rating)||0,notes:Array.isArray(v.notes)?v.notes:[]}}
+function save(){
+  try{
+    localStorage.setItem("bgx-prefs",JSON.stringify(prefs));
+    localStorage.setItem("bgx-routes",JSON.stringify(savedRoutes));
+    storageFallback=false;
+    return true;
+  }catch(e){
+    storageFallback=true;
+    storageMessage("Änderungen sind derzeit nur in dieser geöffneten Vorschau verfügbar. Bitte über „Daten exportieren“ eine Sicherung erstellen.");
+    return false;
+  }
+}
+function icon(cat){return({
+  "Park":"🌳","Hotel":"🏨","Schule":"🏫","Kita":"🏢","Ortsteil":"🏘️",
+  "Sehenswürdigkeit":"🛕","Kirche":"🕍","Kultur":"🎭","Natur":"🌊",
+  "Verwaltung":"🏛️","Verwaltungseinrichtung":"🏛️","Bahnhof":"🚉",
+  "Schwimmbad":"🏊","Haltestelle":"🚏","ÖPNV-Haltestelle":"🚏",
+  "Museum":"🏛️","Sport":"⚽","Bildung":"📚","Gastronomie":"🍽️",
+  "Friedhof":"⚰️"
+})[cat]||"📍"}
+function markerIcon(p){
+  const s=pref(p.id).status;
+  // Wunschziel/Besucht haben Vorrang vor der Auswahl, damit der Status
+  // auch bei geöffneten Details und nach dem Anklicken sichtbar bleibt.
+  const k=s==="wish"?"wish":s==="visited"?"visited":selectedPlaceId===p.id?"selected":"normal";
+  return L.divIcon({className:"bgx-div-icon",html:`<div class="bgx-marker ${k}"><span>${icon(p.cat)}</span></div>`,iconSize:[34,42],iconAnchor:[17,40]})
+}
+function addMarker(p){if(!map||!window.L)return;let m=markers[p.id];if(m){m.setIcon(markerIcon(p));return}m=L.marker([p.lat,p.lon],{icon:markerIcon(p)}).addTo(map).bindPopup(`<b>${esc(p.name)}</b><br>${esc(p.cat)}<br><button onclick="openDetail('${p.id}')">Details</button>`);m.on("click",()=>{selectedPlaceId=p.id;refreshMarkers()});markers[p.id]=m}
+function refreshMarkers(){Object.values(markers).forEach(m=>{let p=places.find(x=>markers[x.id]===m);if(p)m.setIcon(markerIcon(p))})}
+function renderPlaces(){const q=$("search").value.toLowerCase(),c=$("cat").value;const arr=places.filter(p=>(!c||p.cat===c)&&(!q||(p.name+" "+p.cat+" "+p.desc).toLowerCase().includes(q)));$("places").innerHTML=arr.map(p=>`<div class="place"><div class="row between"><h3>${icon(p.cat)} ${esc(p.name)}</h3><span class="pill">${esc(p.cat)}</span></div><p>${esc(p.desc)}</p><div class="actions"><button onclick="openDetail('${p.id}')">Details & bewerten</button><button onclick="showOnMap('${p.id}')">Karte</button></div></div>`).join("")||"<p>Keine passenden Orte gefunden.</p>"}
+function renderMine(){const arr=places.filter(p=>{const v=pref(p.id);return v.status||v.rating||v.notes.length});$("myPlaces").innerHTML=arr.map(p=>{const v=pref(p.id);return`<div class="place"><h3>${icon(p.cat)} ${esc(p.name)}</h3><p>${v.status==="wish"?"⭐ Wunschziel":v.status==="visited"?"✓ Besucht":"Ohne Status"} · <span class="star">${"★".repeat(v.rating)}${"☆".repeat(5-v.rating)}</span></p><p>${v.notes.length} Notiz(en)</p><div class="actions"><button onclick="openDetail('${p.id}')">Bearbeiten</button><button onclick="showOnMap('${p.id}')">Karte</button></div></div>`}).join("")||'<p class="muted">Du hast noch keine Orte markiert.</p>'}
+function openDetail(id){const p=places.find(x=>x.id===id);if(!p)return;const v=pref(id);selectedPlaceId=id;refreshMarkers();$("detailBody").innerHTML=`<h2>${icon(p.cat)} ${esc(p.name)}</h2><span class="pill">${esc(p.cat)}</span><p>${esc(p.desc)}</p><p class="small">${esc(p.address)}</p><div class="field"><label>Status</label><select id="dstatus"><option value="">Noch nicht markiert</option><option value="wish" ${v.status==="wish"?"selected":""}>⭐ Wunschziel</option><option value="visited" ${v.status==="visited"?"selected":""}>✓ Besucht</option></select></div><div class="field"><label>Deine Bewertung</label><select id="drating">${[0,1,2,3,4,5].map(n=>`<option value="${n}" ${v.rating===n?"selected":""}>${n===0?"Noch keine Bewertung":"★".repeat(n)+"☆".repeat(5-n)+" ("+n+"/5)"}</option>`).join("")}</select></div><div class="field"><label>Neue Notiz hinzufügen</label><textarea id="dnote" placeholder="Deine Eindrücke, Tipps, Erinnerungen …"></textarea></div><div class="actions"><button class="primary" id="saveDetail">Speichern</button><button id="cancelDetail">Schließen</button></div><h3>Deine Notizen</h3>${v.notes.map((n,i)=>`<div class="place"><p>${esc(n.text)}</p><span class="small">${esc(n.date)}</span> <button onclick="deleteNote('${id}',${i})">Löschen</button></div>`).join("")||'<p class="muted">Noch keine Notizen.</p>'}`;
+$("detail").showModal();$("cancelDetail").onclick=()=>$("detail").close();$("saveDetail").onclick=()=>{const note=$("dnote").value.trim();prefs[id]={status:$("dstatus").value,rating:Number($("drating").value),notes:v.notes};if(note)prefs[id].notes.push({text:note,date:new Date().toLocaleString("de-DE")});save();refreshMarkers();renderMine();$("detail").close()}}
+function deleteNote(id,i){const v=pref(id);v.notes.splice(i,1);prefs[id]=v;save();openDetail(id)}
+function showOnMap(id){document.querySelector('[data-tab="karte"]').click();const p=places.find(x=>x.id===id);if(!p)return;if(!map){alert("Karte nicht verfügbar. Internetverbindung prüfen.");return}selectedPlaceId=id;refreshMarkers();map.setView([p.lat,p.lon],16);markers[id]?.openPopup()}
+function setupCategories(){const cats=[...new Set(places.map(p=>p.cat).concat(["Kita","ÖPNV-Haltestelle","Verwaltungseinrichtung"]))].sort();$("cat").innerHTML='<option value="">Alle Kategorien</option>'+cats.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("")}
+function renderSuggestions(){$("suggestions").innerHTML=places.map(p=>`<option value="${esc(p.name)}">`).join("")}
+function renderSavedRoutes(){$("savedRoutes").innerHTML=savedRoutes.map(r=>`<div class="place"><h3>🧭 ${esc(r.from)} → ${esc(r.to)}</h3><p class="small">${esc(r.created||"")}</p><div class="actions"><button class="primary" onclick="useSavedRoute('${r.id}')">Route erneut suchen</button><button onclick="deleteSavedRoute('${r.id}')">Löschen</button></div></div>`).join("")||'<p class="muted">Noch keine Routen gespeichert.</p>'}
+function switchTab(id){document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.tab===id));["karte","routen","favoriten","meinerouten","daten"].forEach(x=>$(x).classList.toggle("hidden",x!==id));if(id==="karte"&&map)setTimeout(()=>map.invalidateSize(),150);if(id==="routen"&&routeMap)setTimeout(()=>routeMap.invalidateSize(),150);if(id==="meinerouten")renderSavedRoutes()}
+document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>switchTab(b.dataset.tab)));
+$("search").addEventListener("input",renderPlaces);$("cat").addEventListener("change",()=>{renderPlaces();const c=$("cat").value;places.forEach(p=>{const m=markers[p.id];if(m){if(!c||p.cat===c)m.addTo(map);else map.removeLayer(m)}})});
+$("closeDialog").onclick=()=>$("detail").close();
+async function loadOSM(){const status=$("osmstatus"),bbox="50.640,7.105,50.725,7.225",query=`[out:json][timeout:30];(nwr["amenity"~"^(school|college|university|kindergarten|childcare|townhall|courthouse|police|fire_station|post_office)$"](${bbox});nwr["highway"="bus_stop"](${bbox});nwr["railway"~"^(station|halt|tram_stop)$"](${bbox});nwr["office"="government"](${bbox}););out center tags;`;try{let r=await fetch("https://overpass-api.de/api/interpreter",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8"},body:"data="+encodeURIComponent(query)});if(!r.ok)throw Error("HTTP "+r.status);let d=await r.json(),added=0;for(const e of d.elements||[]){const t=e.tags||{},name=t.name||t["name:de"];if(!name)continue;let cat="";if(["school","college","university"].includes(t.amenity))cat="Schule";else if(["kindergarten","childcare"].includes(t.amenity))cat="Kita";else if(t.highway==="bus_stop"||["station","halt","tram_stop"].includes(t.railway))cat="ÖPNV-Haltestelle";else if(["townhall","courthouse","police","fire_station","post_office"].includes(t.amenity)||t.office==="government")cat="Verwaltungseinrichtung";if(!cat)continue;const lat=e.lat??e.center?.lat,lon=e.lon??e.center?.lon,id="osm-"+e.type+"-"+e.id;if(typeof lat!=="number"||typeof lon!=="number"||places.some(p=>p.id===id))continue;const p={id,name,cat,lat,lon,desc:cat+" laut OpenStreetMap.",address:[t["addr:street"],t["addr:housenumber"],t["addr:city"]].filter(Boolean).join(" ")};places.push(p);added++;addMarker(p)}setupCategories();renderPlaces();renderMine();renderSuggestions();status.textContent=added+" zusätzliche OSM-Einträge geladen."}catch(e){status.textContent="OSM-Zusatzdaten derzeit nicht erreichbar ("+e.message+"). Grundkarte und Startbestand bleiben verfügbar."}}
+async function geocode(q){const p=places.find(x=>x.name.toLowerCase()===q.toLowerCase());if(p)return{lat:p.lat,lon:p.lon,name:p.name};const r=await fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q="+encodeURIComponent(q+", Bonn, Deutschland"));const a=await r.json();if(!a[0])throw Error("Ort nicht gefunden: "+q);return{lat:+a[0].lat,lon:+a[0].lon,name:q}}
+async function getRoute(profile,a,b){const u=`https://router.project-osrm.org/route/v1/${profile}/${a.lon},${a.lat};${b.lon},${b.lat}?overview=full&geometries=geojson`,r=await fetch(u),j=await r.json();if(!j.routes?.length)throw Error("Keine Route gefunden");return j.routes[0]}
+$("goRoute").onclick=async()=>{const from=$("from").value.trim(),to=$("to").value.trim(),out=$("routeResults");if(!from||!to){out.innerHTML="<p>Bitte Start und Ziel eingeben.</p>";return}out.innerHTML="<p>Suche Routen …</p>";try{const[a,b]=await Promise.all([geocode(from),geocode(to)]),[walk,car]=await Promise.all([getRoute("foot",a,b),getRoute("driving",a,b)]);out.innerHTML=`<div class="routebox"><strong>🚶 Fußweg</strong>${(walk.distance/1000).toFixed(1)} km<br>ca. ${Math.round(walk.duration/60)} Min.</div><div class="routebox"><strong>🚗 Auto</strong>${(car.distance/1000).toFixed(1)} km<br>ca. ${Math.round(car.duration/60)} Min. <span class="small">ohne Live-Verkehr</span></div><div class="routebox"><strong>🚌 ÖPNV</strong>Fahrplanauskunft<br><a target="_blank" rel="noopener" href="https://www.vrs.de/fahren/fahrplanauskunft">VRS-Verbindung öffnen ↗</a></div><div class="routebox"><strong>💾 Route merken</strong><button class="primary" id="saveRoute">Route speichern</button></div>`;$("saveRoute").onclick=()=>{savedRoutes.unshift({id:"r-"+Date.now(),from,to,created:new Date().toLocaleString("de-DE")});savedRoutes=savedRoutes.slice(0,100);save();renderSavedRoutes();alert("Route gespeichert.")};if(routeMap)routeMap.remove();routeMap=L.map("routeMap").setView([a.lat,a.lon],13);L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"© OpenStreetMap"}).addTo(routeMap);L.marker([a.lat,a.lon]).addTo(routeMap).bindPopup("Start");L.marker([b.lat,b.lon]).addTo(routeMap).bindPopup("Ziel");const line=L.geoJSON(walk.geometry,{style:{color:"#147b9b",weight:5}}).addTo(routeMap);L.geoJSON(car.geometry,{style:{color:"#d28b25",weight:4,dashArray:"7 6"}}).addTo(routeMap);routeMap.fitBounds(line.getBounds(),{padding:[20,20]})}catch(e){out.innerHTML=`<div class="notice">${esc(e.message)}. Prüfe Schreibweise oder vollständige Adresse.</div>`}};
+$("swap").onclick=()=>{const a=$("from"),b=$("to");[a.value,b.value]=[b.value,a.value]};
+$("export").onclick=()=>{
+  const payload={app:"Bad Godesberg Explorer",version:3,exported:new Date().toISOString(),prefs,savedRoutes};
+  const json=JSON.stringify(payload,null,2);
+  $("exportJson").value=json;
+  $("exportFallback").classList.remove("hidden");
+  $("importStatus").textContent="Sicherung erstellt. Du kannst den JSON-Text kopieren oder markieren.";
+  $("exportJson").focus();
+};
+$("copyExport").onclick=async()=>{
+  const field=$("exportJson");
+  try{
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      await navigator.clipboard.writeText(field.value);
+      $("importStatus").textContent="JSON wurde in die Zwischenablage kopiert.";
+    }else{
+      field.focus();field.select();
+      const ok=document.execCommand&&document.execCommand("copy");
+      $("importStatus").textContent=ok?"JSON wurde kopiert.":"Bitte den markierten Text manuell kopieren.";
+    }
+  }catch(e){
+    field.focus();field.select();
+    $("importStatus").textContent="Automatisches Kopieren nicht möglich. Bitte den markierten Text manuell kopieren.";
+  }
+};
+$("selectExport").onclick=()=>{
+  const field=$("exportJson");field.focus();field.select();
+  $("importStatus").textContent="Der JSON-Text ist markiert. Wähle „Kopieren“.";
+};
+$("importBtn").onclick=()=>$("importFile").click();$("importFile").onchange=async e=>{const f=e.target.files?.[0];if(!f)return;try{const j=JSON.parse(await f.text());if(!j||typeof j.prefs!=="object"||!j.prefs)throw Error("Ungültige Sicherungsdatei");prefs={...prefs,...j.prefs};if(Array.isArray(j.savedRoutes))savedRoutes=j.savedRoutes.filter(x=>x&&typeof x.from==="string"&&typeof x.to==="string");const persisted=save();renderMine();renderSavedRoutes();$("importStatus").textContent=persisted?"Import erfolgreich und lokal gespeichert.":"Import in diese Sitzung übernommen. Bitte direkt eine JSON-Sicherung exportieren, da Koder den Browserspeicher blockiert."}catch(err){$("importStatus").textContent="Import fehlgeschlagen: "+err.message}finally{e.target.value=""}};
+window.openDetail=openDetail;window.showOnMap=showOnMap;window.deleteNote=deleteNote;window.useSavedRoute=id=>{const r=savedRoutes.find(x=>x.id===id);if(!r)return;$("from").value=r.from;$("to").value=r.to;switchTab("routen");$("goRoute").click()};window.deleteSavedRoute=id=>{savedRoutes=savedRoutes.filter(x=>x.id!==id);save();renderSavedRoutes()};
+function init(){setupCategories();renderPlaces();renderMine();renderSavedRoutes();renderSuggestions();if(storageFallback)storageMessage("Koder blockiert den Browserspeicher. Änderungen bleiben nur in dieser geöffneten Vorschau erhalten – bitte regelmäßig exportieren.");if(!window.L){$("mapstatus").textContent="Leaflet konnte nicht geladen werden. Internetverbindung prüfen.";return}try{map=L.map("map").setView([50.6815,7.16],13);L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);places.forEach(addMarker);$("mapstatus").textContent="Karte initialisiert.";setTimeout(()=>map.invalidateSize(),300);loadOSM()}catch(e){$("mapstatus").textContent="Kartenfehler: "+e.message;$("osmstatus").textContent="Die Ortsliste bleibt weiterhin nutzbar."}}
+init();
+</script>
+</body></html>
