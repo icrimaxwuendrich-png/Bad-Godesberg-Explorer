@@ -23,7 +23,7 @@
 <section id="routen" class="hidden"><div class="panel"><h2>Verbindung suchen</h2><p class="muted">Vergleiche ÖPNV, Fußweg und Auto. Internetverbindung erforderlich.</p><div class="layout"><div><div class="field"><label for="from">Start</label><input id="from" list="suggestions" placeholder="Adresse, Haltestelle oder Ort"></div><div class="field"><label for="to">Ziel</label><input id="to" list="suggestions" placeholder="Adresse, Haltestelle oder Ort"></div><datalist id="suggestions"></datalist><div class="field"><label for="depart">Abfahrt (optional)</label><input id="depart" type="datetime-local"></div><div class="actions"><button class="primary" id="goRoute">Verbindungen anzeigen</button><button id="swap">⇅ Tauschen</button></div></div><div class="notice">Fuß- und Autorouten werden über OSRM berechnet. ÖPNV öffnet die Fahrplanauskunft des VRS; echte Live-Verspätungen werden hier nicht eingebettet.</div></div><div id="routeResults" class="routegrid" style="margin-top:16px"></div><div id="routeMap" class="mapframe" style="margin-top:14px"></div></div></section>
 <section id="changelog" class="hidden"><div class="panel">
 <div class="row between"><div><h2>Changelog</h2><p class="muted">Versionshistorie des Bad Godesberg Explorers</p></div><span class="pill" id="editionLabel">Nutzer-Version</span></div>
-<div id="cloudStatus" class="notice" style="margin:10px 0">Lokale Changelog-Daten werden angezeigt; Supabase-Verbindung wird vorbereitet …</div><div id="changelogList" class="timeline"></div>
+<div id="cloudStatus" class="notice" style="margin:10px 0">Lokale Changelog-Daten werden angezeigt; Supabase-Verbindung wird vorbereitet …</div><div id="adminSessionControls" class="notice hidden" style="margin:10px 0"><strong>Admin-Sitzung aktiv</strong><p class="small">Du bist angemeldet.</p><button id="adminLogout" type="button">Abmelden</button></div><div id="changelogList" class="timeline"></div>
 <hr><h2>Geplant für das nächste Update</h2><p class="muted">Hier stehen Neuerungen, die noch geplant sind. Erledigte Punkte bleiben zur Nachverfolgung sichtbar.</p><div id="plannedList" class="places"></div>
 <div id="adminWarning" class="notice hidden" style="margin-top:14px">Admin-Datei: Anmeldung und Schreibrechte werden serverseitig über Supabase Auth und Row-Level-Security geprüft. Änderungen werden zentral synchronisiert.</div>
 <div id="adminLogin" class="notice" style="margin-top:14px">
@@ -33,7 +33,6 @@
 <div class="field"><label for="adminPassword">Passwort</label><input id="adminPassword" type="password" autocomplete="current-password"></div>
 <div class="actions"><button class="primary" id="adminLoginBtn" type="button">Anmelden</button></div>
 </div>
-<div class="actions"><button id="adminLogout" class="hidden" type="button">Abmelden</button></div>
 <p id="authStatus" class="small" aria-live="polite"></p></div>
 <div id="adminEditor" class="hidden" style="margin-top:18px"><hr><h2>Admin-Bereich</h2><p class="small">Changelog-Einträge und geplante Neuerungen verwalten.</p>
 <div class="editor-grid"><div class="editor-card"><h3>Changelog-Eintrag</h3><form id="logForm"><div class="field"><label for="logVersion">Version</label><input id="logVersion" required placeholder="z. B. 1.7 Beta"></div><div class="field"><label for="logDate">Datum</label><input id="logDate" type="date"></div><div class="field"><label for="logTitle">Überschrift</label><input id="logTitle" required placeholder="Kurzer Titel"></div><div class="field"><label for="logDetails">Änderungen</label><textarea id="logDetails" required placeholder="Was wurde geändert oder behoben?"></textarea></div><div class="actions"><button class="primary" id="saveLog" type="submit">Eintrag hinzufügen</button><button id="cancelLogEdit" type="button" class="hidden">Abbrechen</button></div></form></div>
@@ -239,7 +238,7 @@ function setAdminAccess(isAdmin,user){
   if(!ADMIN_MODE)return;
   $("adminLoginFields").classList.toggle("hidden",cloudIsAdmin);
   $("adminEditor").classList.toggle("hidden",!cloudIsAdmin);
-  $("adminLogout").classList.toggle("hidden",!user);
+  $("adminSessionControls").classList.toggle("hidden",!user);
   $("editionLabel").textContent=cloudIsAdmin?"Admin-Version · angemeldet":"Admin-Version · Anmeldung erforderlich";
   if(user&&!cloudIsAdmin)authStatus("Dieses Konto ist nicht als Admin freigeschaltet.");
   if(cloudIsAdmin)authStatus("Admin-Berechtigung bestätigt. Änderungen werden zentral gespeichert.");
@@ -281,7 +280,13 @@ async function initCloud(){
       setAdminAccess(allowed,data.user);
       if(allowed)await syncCloudData();
     });
-    $("adminLogout").addEventListener("click",async()=>{await cloudClient.auth.signOut();setAdminAccess(false,null);authStatus("Abgemeldet.");});
+    $("adminLogout").addEventListener("click",async()=>{
+      authStatus("Abmeldung läuft …");
+      const {error}=await cloudClient.auth.signOut({scope:"local"});
+      if(error){authStatus("Abmeldung fehlgeschlagen: "+error.message);return;}
+      setAdminAccess(false,null);
+      authStatus("Abgemeldet.");
+    });
     cloudClient.auth.onAuthStateChange((_event,session)=>{
       const user=session?.user||null;
       setAdminAccess(!!user&&user.app_metadata?.role==="admin",user);
