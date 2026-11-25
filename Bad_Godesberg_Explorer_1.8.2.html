@@ -1,0 +1,649 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bad Godesberg Explorer – 1.8.2</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{--bg:#f3f6fa;--panel:#fff;--ink:#15283d;--muted:#61758a;--brand:#145b75;--accent:#e2a93b;--line:#dce5ed;--shadow:0 8px 28px #18334d12}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}header{background:linear-gradient(120deg,#123c55,#187b91);color:white;padding:25px max(18px,calc((100% - 1200px)/2))}header h1{margin:0 0 5px;font-size:clamp(25px,4vw,36px)}header p{margin:4px 0}.small{font-size:12px;color:var(--muted)}.wrap{max-width:1200px;margin:18px auto;padding:0 14px}.tabs{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}.tab,button{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:9px;padding:9px 13px;font:inherit;cursor:pointer}.tab.active,button.primary{background:var(--brand);border-color:var(--brand);color:#fff}.tab:hover,button:hover{filter:brightness(.97)}.hidden{display:none!important}.layout{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(280px,.85fr);gap:14px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:var(--shadow);min-width:0}.panel h2{margin:0 0 12px}.row{display:flex;align-items:center;gap:10px}.between{justify-content:space-between}.mapframe{height:440px;border-radius:10px;background:#e7edf1;overflow:hidden}.mapnote{font-size:12px;color:var(--muted);margin:9px 0}.field{margin:12px 0}.field label{display:block;font-weight:650;margin-bottom:5px}input,select,textarea{width:100%;padding:10px;border:1px solid #cbd7e1;border-radius:8px;background:white;color:var(--ink);font:inherit}textarea{min-height:90px}.places{display:grid;gap:10px;margin-top:12px}.place{border:1px solid var(--line);border-radius:10px;padding:12px}.place h3{margin:0;font-size:16px}.place p{margin:7px 0}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}.pill{font-size:11px;background:#edf3f6;border-radius:99px;padding:3px 8px;white-space:nowrap}.muted{color:var(--muted)}.notice{background:#fff8e8;border:1px solid #f0dfb5;border-radius:10px;padding:12px}.routegrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}.routebox{border:1px solid var(--line);border-radius:10px;padding:13px}.routebox strong{display:block;margin-bottom:7px}.footer{color:var(--muted);font-size:12px;padding:20px 4px}dialog{border:0;border-radius:14px;padding:22px;width:min(600px,calc(100% - 24px));max-height:85vh;overflow:auto;box-shadow:0 20px 70px #0004}dialog::backdrop{background:#10253688}.close{float:right}.star{color:#bd8412}.bgx-div-icon{background:transparent;border:0}.bgx-marker{width:28px;height:28px;border:3px solid white;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:#267b9b;box-shadow:0 2px 7px #0005;display:grid;place-items:center;color:white;font-weight:bold}.bgx-marker span{transform:rotate(45deg);font-size:15px;line-height:1}.bgx-marker.selected{background:#d93636}.bgx-marker.wish{background:#e6b52c;color:#302300}.bgx-marker.visited{background:#299b58}.timeline{display:grid;gap:10px;margin-top:14px}.log-item,.editor-card{border:1px solid var(--line);border-radius:11px;padding:13px;background:#fff}.log-item h3,.editor-card h3{margin:0;font-size:16px}.log-text{white-space:pre-wrap;margin:8px 0 0}.editor-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-top:12px}.log-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.status-done{background:#e7f5eb;color:#176b36}.status-planned{background:#fff5db;color:#805d0b}@media(max-width:800px){.layout{grid-template-columns:1fr}.mapframe{height:350px}.wrap{margin-top:12px}}
+
+body[data-theme="dark"]{
+  --bg:#101923;--panel:#1b2938;--ink:#e8f0f7;--muted:#a9bac9;
+  --brand:#247b98;--accent:#e2b44d;--line:#35495b;--shadow:0 8px 28px #0005;
+}
+body[data-theme="dark"] .tab,
+body[data-theme="dark"] button{
+  background:#223346;color:var(--ink);border-color:var(--line);
+}
+body[data-theme="dark"] .tab.active,
+body[data-theme="dark"] button.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+body[data-theme="dark"] input,
+body[data-theme="dark"] select,
+body[data-theme="dark"] textarea{
+  background:#111e2b;color:var(--ink);border-color:#465c70;
+}
+body[data-theme="dark"] .place,
+body[data-theme="dark"] .log-item,
+body[data-theme="dark"] .editor-card{
+  background:#1b2938;border-color:var(--line);
+}
+body[data-theme="dark"] .notice{background:#302b1e;border-color:#66552d;color:#f4e8c9}
+body[data-theme="dark"] .pill{background:#304357;color:#e4edf5}
+body[data-theme="dark"] dialog{background:#1b2938;color:var(--ink)}
+body[data-theme="dark"] .status-done{background:#173d2a;color:#a9e8bd}
+body[data-theme="dark"] .status-planned{background:#493b1d;color:#f4d98f}
+body[data-theme="dark"] hr{border:0;border-top:1px solid var(--line)}
+body[data-theme="dark"] a{color:#8fd4ed}
+
+</style>
+</head>
+<body>
+<header><h1>🧭 Bad Godesberg Explorer</h1><p>Dein Entdecker- und Mobilitätsguide von Bonn/Bad Godesberg bis Köln und Umgebung</p><p class="small" style="color:#d7e8ef">Version 1.8.2 · Gemeinsame Nutzer- und Admin-Version</p></header>
+<div class="wrap">
+<nav class="tabs" aria-label="Hauptnavigation">
+<button class="tab active" data-tab="karte">Karte & Orte</button><button class="tab" data-tab="routen">Routenplaner</button><button class="tab" data-tab="favoriten">Meine Orte</button><button class="tab" data-tab="meinerouten">Meine Routen</button><button class="tab" data-tab="daten">Import / Export</button><button class="tab" data-tab="feedback">Feedback</button><button class="tab" data-tab="settings">Einstellungen</button><button class="tab" data-tab="changelog">Changelog</button>
+</nav>
+<section id="karte"><div class="layout">
+<div class="panel"><div class="row between"><h2>Karte</h2><span class="small" id="mapstatus">Karte wird vorbereitet …</span></div><div id="map" class="mapframe"></div><p class="mapnote" id="osmstatus">Zusätzliche Einrichtungen werden aus OpenStreetMap geladen …</p><div class="mapnote">🔵 Normaler Ort &nbsp; 🔴 Ausgewählt &nbsp; ⭐ Wunschziel &nbsp; 🟢 ✓ Besucht</div><p class="mapnote">Gebiet: Bonn, Bad Godesberg, Wesseling, Bornheim, Brühl, Hürth, Frechen, Köln, Leverkusen, Bergisch Gladbach, Troisdorf, Siegburg und Königswinter. Kartenmaterial © OpenStreetMap-Mitwirkende; Ortsdaten können unvollständig oder veraltet sein.</p></div>
+<div class="panel"><h2>Orte in der Umgebung</h2><div class="field"><label for="region">Stadt / Gebiet auf der Karte</label><select id="region"><option value="all">Gesamtes Gebiet: Bonn bis Köln</option><option value="city-bonn">Bonn</option><option value="city-bad-godesberg">Bad Godesberg</option><option value="city-wesseling">Wesseling</option><option value="city-bornheim">Bornheim</option><option value="city-bruehl">Brühl</option><option value="city-huerth">Hürth</option><option value="city-frechen">Frechen</option><option value="city-koeln">Köln</option><option value="city-leverkusen">Leverkusen</option><option value="city-bergisch-gladbach">Bergisch Gladbach</option><option value="city-troisdorf">Troisdorf</option><option value="city-siegburg">Siegburg</option><option value="city-koenigswinter">Königswinter</option></select></div><div class="field"><label for="search">Ort oder Kategorie suchen</label><input id="search" placeholder="z. B. Schwimmbad, Bahnhof, Godesburg …"></div><div class="field"><label for="cat">Kategorie</label><select id="cat"><option value="">Alle Kategorien</option></select><p class="small">Die Kategorien sind thematisch gruppiert. Neue Unterkategorien verändern keine bereits gespeicherten Ortskategorien.</p></div><div id="places" class="places"></div></div>
+</div></section>
+<section id="routen" class="hidden"><div class="panel"><h2>Verbindung suchen</h2><p class="muted">Vergleiche ÖPNV, Fußweg und Auto. Internetverbindung erforderlich.</p><div class="layout"><div><div class="field"><label for="from">Start</label><input id="from" list="suggestions" placeholder="Adresse, Haltestelle oder Ort"></div><div class="field"><label for="to">Ziel</label><input id="to" list="suggestions" placeholder="Adresse, Haltestelle oder Ort"></div><datalist id="suggestions"></datalist><div class="field"><label for="depart">Abfahrt (optional)</label><input id="depart" type="datetime-local"></div><div class="actions"><button class="primary" id="goRoute">Verbindungen anzeigen</button><button id="swap">⇅ Tauschen</button></div></div><div class="notice">Fuß- und Autorouten werden über OSRM berechnet. ÖPNV öffnet die Fahrplanauskunft des VRS; echte Live-Verspätungen werden hier nicht eingebettet.</div></div><div id="routeResults" class="routegrid" style="margin-top:16px"></div><div id="routeMap" class="mapframe" style="margin-top:14px"></div></div></section>
+<section id="changelog" class="hidden"><div class="panel">
+<div class="row between"><div><h2>Changelog</h2><p class="muted">Versionshistorie des Bad Godesberg Explorers</p></div><span class="pill" id="editionLabel">Nutzer-Version</span></div>
+<div id="cloudStatus" class="notice" style="margin:10px 0">Lokale Changelog-Daten werden angezeigt; Supabase-Verbindung wird vorbereitet …</div><div id="changelogList" class="timeline"></div>
+<hr><h2>Geplant für das nächste Update</h2><p class="muted">Hier stehen Neuerungen, die noch geplant sind. Erledigte Punkte bleiben zur Nachverfolgung sichtbar.</p><div id="plannedList" class="places"></div>
+<div id="adminWarning" class="notice hidden" style="margin-top:14px">Gemeinsame Datei: Der Explorer bleibt ohne Anmeldung normal nutzbar. Adminfunktionen werden erst nach Anmeldung freigeschaltet.</div>
+<div id="adminLogin" class="notice" style="margin-top:14px">
+<div id="adminLoginFields">
+<h3>Admin-Anmeldung</h3><p class="small">Melde dich mit dem in Supabase freigeschalteten Admin-Konto an.</p>
+<div class="field"><label for="adminEmail">E-Mail</label><input id="adminEmail" type="email" autocomplete="username"></div>
+<div class="field"><label for="adminPassword">Passwort</label><input id="adminPassword" type="password" autocomplete="current-password"></div>
+<div class="actions"><button class="primary" id="adminLoginBtn" type="button">Anmelden</button></div>
+</div>
+<div class="actions"><button id="adminLogout" class="hidden" type="button">Abmelden</button></div>
+<p id="authStatus" class="small" aria-live="polite"></p></div>
+<div id="adminEditor" class="hidden" style="margin-top:18px"><hr><h2>Admin-Bereich</h2><p class="small">Changelog-Einträge und geplante Neuerungen verwalten.</p>
+<div class="editor-grid"><div class="editor-card"><h3>Changelog-Eintrag</h3><form id="logForm"><div class="field"><label for="logVersion">Version</label><input id="logVersion" required placeholder="z. B. 1.7 Beta"></div><div class="field"><label for="logDate">Datum</label><input id="logDate" type="date"></div><div class="field"><label for="logTitle">Überschrift</label><input id="logTitle" required placeholder="Kurzer Titel"></div><div class="field"><label for="logDetails">Änderungen</label><textarea id="logDetails" required placeholder="Was wurde geändert oder behoben?"></textarea></div><div class="actions"><button class="primary" id="saveLog" type="submit">Eintrag hinzufügen</button><button id="cancelLogEdit" type="button" class="hidden">Abbrechen</button></div></form></div>
+<div class="editor-card"><h3>Geplante Neuerung</h3><form id="planForm"><div class="field"><label for="planTitle">Titel</label><input id="planTitle" required placeholder="Geplante Funktion"></div><div class="field"><label for="planDetails">Beschreibung</label><textarea id="planDetails" placeholder="Was soll umgesetzt werden?"></textarea></div><div class="actions"><button class="primary" id="savePlan" type="submit">Planung hinzufügen</button><button id="cancelPlanEdit" type="button" class="hidden">Abbrechen</button></div></form></div></div>
+</div></div></section>
+<section id="favoriten" class="hidden"><div class="panel"><h2>Meine Wunschziele & besuchten Orte</h2><p class="muted">Status, Bewertungen und Notizen werden lokal auf diesem Gerät gespeichert.</p><div id="myPlaces" class="places"></div></div></section>
+<section id="meinerouten" class="hidden"><div class="panel"><h2>Meine gespeicherten Routen</h2><div id="savedRoutes" class="places"></div></div></section>
+<section id="daten" class="hidden"><div class="panel"><h2>Deine Daten sichern</h2><p>Exportiere persönliche Markierungen, Bewertungen, Notizen, Routen, Changelog-Einträge und geplante Neuerungen als JSON-Datei.</p><div class="actions"><button class="primary" id="export">Daten exportieren</button><button id="importBtn">Daten importieren</button><input id="importFile" type="file" accept=".json,application/json" class="hidden"></div><p class="small" id="importStatus"></p>
+<div id="exportFallback" class="field hidden">
+<label for="exportJson">Deine Sicherung (JSON)</label>
+<textarea id="exportJson" readonly spellcheck="false" style="min-height:220px;font:12px/1.45 ui-monospace,monospace"></textarea>
+<div class="actions"><button class="primary" id="copyExport">JSON kopieren</button><button id="selectExport">Alles markieren</button></div>
+<p class="small">Falls Koder keinen Datei-Download zulässt: Text kopieren und in einer Datei mit der Endung .json sichern.</p>
+</div>
+<p class="small">Wenn Koder den Browserspeicher blockiert, bleiben Änderungen nur bis zum Schließen dieser Vorschau erhalten. Exportiere dann regelmäßig eine Sicherung. Changelog und Planung werden ebenfalls mitgesichert.</p><hr><h3>Datenquellen & Grenzen</h3><p class="small">Karte: OpenStreetMap/Leaflet. Geocoding: Nominatim. Fuß-/Autrouting: OSRM-Demo-Server. ÖPNV: VRS-Fahrplanauskunft. Zusätzliche Schulen, Kitas, Haltestellen und Verwaltungseinrichtungen werden über OpenStreetMap/Overpass geladen.</p></div></section>
+
+<section id="feedback" class="hidden">
+  <div class="layout">
+    <div class="panel">
+      <h2>Idee oder Fehler melden</h2>
+      <p class="muted">Dein Feedback hilft, den Explorer weiterzuentwickeln. Die Meldung wird an die Explorer-Datenbank übertragen.</p>
+      <form id="feedbackForm">
+        <div class="field">
+          <label for="feedbackKind">Art des Feedbacks</label>
+          <select id="feedbackKind" required>
+            <option value="Idee">💡 Verbesserungsidee</option>
+            <option value="Fehler">🐛 Fehler melden</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="feedbackTitle">Kurzer Titel</label>
+          <input id="feedbackTitle" maxlength="120" required placeholder="Worum geht es?">
+        </div>
+        <div class="field">
+          <label for="feedbackMessage">Beschreibung</label>
+          <textarea id="feedbackMessage" maxlength="4000" required placeholder="Beschreibe deine Idee oder den Fehler möglichst genau …"></textarea>
+        </div>
+        <div class="field">
+          <label for="feedbackContact">Kontakt (optional)</label>
+          <input id="feedbackContact" maxlength="200" placeholder="z. B. E-Mail-Adresse, falls eine Rückfrage nötig ist">
+        </div>
+        <p class="small">Bitte keine Passwörter oder anderen sensiblen persönlichen Daten eintragen. Eine Kontaktangabe ist freiwillig.</p>
+        <div class="actions"><button class="primary" id="sendFeedback" type="submit">Feedback senden</button></div>
+      </form>
+      <p class="small" id="feedbackStatus" aria-live="polite">Für das Senden ist eine Verbindung zur Supabase-Datenbank erforderlich.</p>
+    </div>
+    <div class="panel">
+      <h2>Was passiert mit deinem Feedback?</h2>
+      <p>Ideen und Fehlerberichte werden gesammelt und können vom Explorer-Admin geprüft werden. Normale Nutzer sehen keine fremden Meldungen.</p>
+      <p class="small">Die Feedbackverwaltung wird erst nach erfolgreicher Admin-Anmeldung eingeblendet. Zusätzlich schützen Supabase-Zugriffsregeln die Datensätze serverseitig.</p>
+      <div id="adminFeedbackPanel" class="hidden">
+        <hr>
+        <div class="row between">
+          <h2>Admin-Feedbackpostfach</h2>
+          <button id="refreshFeedback" type="button">Neu laden</button>
+        </div>
+        <p class="small" id="feedbackAdminStatus" aria-live="polite">Feedback wird geladen …</p>
+        <div id="feedbackAdminList" class="timeline"></div>
+      </div>
+    </div>
+  </div>
+</section>
+<section id="settings" class="hidden">
+  <div class="panel">
+    <h2>Einstellungen</h2>
+    <p class="muted">Passe die Darstellung des Explorers an. Die Auswahl wird auf diesem Gerät gespeichert.</p>
+    <div class="field">
+      <label for="themeSelect">Darstellung</label>
+      <select id="themeSelect">
+        <option value="light">☀️ Lightmode</option>
+        <option value="dark">🌙 Darkmode</option>
+      </select>
+    </div>
+    <p class="small" id="themeStatus" aria-live="polite">Die Darstellungseinstellung wird lokal gespeichert.</p>
+  </div>
+</section>
+
+<div class="footer">Bad Godesberg Explorer · Version 1.8.2 · Externe Kartendienste benötigen Internetzugang. Fahrzeiten sind Schätzwerte.</div></div>
+<dialog id="detail"><button class="close" id="closeDialog">✕</button><div id="detailBody"></div></dialog>
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+"use strict";
+const places=[
+["godesburg","Godesburg","Sehenswürdigkeit",50.6869,7.1588,"Burgruine mit weitem Blick über Bad Godesberg und das Rheintal.","Auf dem Godesberg, Bonn"],
+["kurpark","Kurpark Bad Godesberg","Park",50.6845,7.1535,"Grüne Anlage nahe dem Zentrum.","Am Kurpark, Bonn"],
+["redoute","La Redoute","Kultur",50.6842,7.1559,"Historisches klassizistisches Gebäude im Kurviertel.","Kurfürstenallee 1, Bonn"],
+["bastei","Bastei Rüngsdorf","Sehenswürdigkeit",50.6862,7.1705,"Rheinufer-Orientierungspunkt mit Blick auf den Rhein.","Von-Sandt-Ufer, Bonn"],
+["rheinaue","Rheinufer Rüngsdorf","Natur",50.6818,7.1717,"Uferweg und Grünflächen am Rhein.","Rheinallee, Bonn"],
+["panoramapark","Panoramapark","Park",50.6777,7.1645,"Grünanlage im Bereich Pennenfeld.","Pennenfeld, Bonn"],
+["carstanjen","Haus Carstanjen","Verwaltung",50.6972,7.1514,"Historischer Gebäudekomplex in Plittersdorf.","Martin-Luther-King-Straße, Bonn"],
+["bahnhof","Bahnhof Bad Godesberg","Bahnhof",50.6833,7.1584,"Regionalbahnhof und Anschluss an Bus und Stadtbahn.","Moltkestraße, Bonn"],
+["stadthalle","Stadthalle Bad Godesberg","Kultur",50.6862,7.1552,"Veranstaltungsort nahe dem Zentrum.","Koblenzer Straße, Bonn"],
+["theater","K Schauspielhaus Bad Godesberg","Kultur",50.6856,7.1566,"Theaterstandort im Zentrum.","Am Michaelshof, Bonn"],
+["friesi","Friesi – Hallenbad Friesdorf","Schwimmbad",50.681,7.1327,"Hallenbad in Friesdorf. Öffnungszeiten vor Besuch prüfen.","Margaretenstraße, Bonn"],
+["panoramabad","Panoramabad Rüngsdorf","Schwimmbad",50.6812,7.1681,"Freibad im Ortsteil Rüngsdorf. Saisonbetrieb beachten.","Am Schwimmbad, Bonn"],
+["stadtbahn","Stadtbahn-Haltestelle Bad Godesberg Bahnhof","Haltestelle",50.683,7.158,"Anschluss an Stadtbahn und Bus.","Bahnhof Bad Godesberg"],
+["plitt","Plittersdorf","Ortsteil",50.698,7.1518,"Ortsteil nördlich des Zentrums.","Plittersdorf, Bonn"],
+["muffendorf","Muffendorf","Ortsteil",50.6726,7.16,"Historischer Ortskern mit Fachwerk und engen Gassen.","Muffendorf, Bonn"],
+["mehlem","Mehlem","Ortsteil",50.6632,7.189,"Südlicher Ortsteil am Rhein.","Mehlem, Bonn"],
+["pennenfeld","Pennenfeld","Ortsteil",50.6742,7.169,"Wohngebiet südlich des Zentrums.","Pennenfeld, Bonn"],
+["lannesdorf","Lannesdorf","Ortsteil",50.6667,7.164,"Ortsteil südöstlich des Zentrums.","Lannesdorf, Bonn"],
+["altgodesberg","Alt-Godesberg","Ortsteil",50.6848,7.157,"Historischer Ortskern rund um Zentrum und Godesburg.","Alt-Godesberg, Bonn"],
+["friesdorf","Friesdorf","Ortsteil",50.68,7.132,"Ortsteil westlich des Godesberger Zentrums.","Friesdorf, Bonn"],
+["godesbergnord","Godesberg-Nord","Ortsteil",50.6925,7.157,"Nördlicher Bereich des Stadtbezirks.","Godesberg-Nord, Bonn"],
+["villenv","Godesberg-Villenviertel","Ortsteil",50.69,7.166,"Historisches Villenviertel östlich des Zentrums.","Villenviertel, Bonn"],
+["heiderhof","Heiderhof","Ortsteil",50.66,7.139,"Wohngebiet auf der westlichen Höhe Bad Godesbergs.","Heiderhof, Bonn"],
+["hochkreuz","Hochkreuz","Ortsteil",50.7005,7.133,"Ortsteil im Norden des Stadtbezirks.","Hochkreuz, Bonn"],
+["ruengsdorf","Rüngsdorf","Ortsteil",50.687,7.174,"Rheinnaher Ortsteil zwischen Zentrum und Mehlem.","Rüngsdorf, Bonn"],
+["schweinheim","Schweinheim","Ortsteil",50.666,7.145,"Grüner Ortsteil westlich der Godesburg.","Schweinheim, Bonn"],
+["stadtpark","Stadtpark Bad Godesberg","Park",50.6852,7.1546,"Historischer Landschaftspark im ehemaligen Kurviertel.","Koblenzer Straße, Bonn"],
+["redoutenpark","Redoutenpark","Park",50.6837,7.1546,"Englischer Landschaftspark neben der La Redoute.","Kurfürstenallee, Bonn"],
+["drachensteinpark","Drachensteinpark","Park",50.6682,7.19,"Historischer Park in Mehlem oberhalb des Rheins.","Mainzer Straße, Bonn"],
+["draitschbrunnen","Draitschbrunnen","Sehenswürdigkeit",50.6846,7.1566,"Historische Heilquelle und Trinkbrunnen.","Brunnenallee, Bonn"],
+["michaelskapelle","Michaelskapelle","Kirche",50.6871,7.1597,"Barocke Kapelle nahe der Godesburg.","Auf dem Godesberg, Bonn"],
+["burgfriedhof","Burgfriedhof Bad Godesberg","Friedhof",50.6874,7.1604,"Historischer Friedhof am Fuß der Godesburg.","Auf dem Godesberg, Bonn"],
+["rathaus","Rathaus Bad Godesberg","Verwaltung",50.684,7.1567,"Historisches Rathausensemble und Verwaltungsstandort.","Kurfürstenallee, Bonn"],
+["reduttchen","Redüttchen","Gastronomie",50.684,7.1554,"Historisches Gartenhaus neben der Redoute.","Kurfürstenallee, Bonn"],
+["bibliothek","Bezirksbibliothek Bad Godesberg","Bildung",50.6835,7.1588,"Stadtteilbibliothek an der Moltkestraße.","Moltkestraße, Bonn"],
+["sportpark","Sportpark Pennenfeld","Sport",50.6745,7.1722,"Große städtische Sportanlage.","Mallwitzstraße, Bonn"],
+["deutschesmuseum","Deutsches Museum Bonn","Museum",50.7006,7.1314,"Wissenschafts- und Technikmuseum in Hochkreuz.","Ahrstraße, Bonn"],
+["acg","Amos-Comenius-Gymnasium","Schule",50.6766,7.1646,"Gymnasium an der Behringstraße.","Behringstraße, Bonn"],
+["kag","Konrad-Adenauer-Gymnasium","Schule",50.6775,7.1665,"Städtisches Gymnasium in Bad Godesberg.","Max-Planck-Straße, Bonn"],
+["rheinhotel","Rheinhotel Dreesen","Hotel",50.6879,7.1752,"Traditionshotel direkt am Rhein in Rüngsdorf.","Rheinstraße, Bonn"],
+["hotelkaiserhof","Best Western Hotel Kaiserhof","Hotel",50.6834,7.1597,"Hotel gegenüber dem Bahnhof Bad Godesberg.","Moltkestraße, Bonn"],
+["hotelzumloewen","Hotel zum Löwen","Hotel",50.6838,7.1582,"Hotel nahe Bahnhof und Fußgängerzone.","Von-Groote-Platz, Bonn"],
+["bahnhofmehlem","Bahnhof Bonn-Mehlem","Bahnhof",50.6593,7.1907,"Regionalbahnhof im Süden Bad Godesbergs.","Am Bahnhof Mehlem, Bonn"],
+["rigal","Rigalsche Kapelle","Kirche",50.6876,7.1562,"Historische Kapelle im Villenviertel.","Rüngsdorfer Straße, Bonn"],
+["stmarien","St. Marien Bad Godesberg","Kirche",50.6849,7.1575,"Katholische Kirche im Zentrum Bad Godesbergs.","Burgstraße, Bonn"]
+].map(a=>({id:a[0],name:a[1],cat:a[2],lat:a[3],lon:a[4],desc:a[5],address:a[6]}));
+const regionPlaces = [{"id":"city-bonn","name":"Bonn (Zentrum)","cat":"Stadt","lat":50.7374,"lon":7.0982,"desc":"Stadtzentrum Bonn – nördlicher Ausgangspunkt des erweiterten Explorer-Gebiets.","address":"Bonn, Nordrhein-Westfalen"},{"id":"city-bad-godesberg","name":"Bad Godesberg","cat":"Stadt","lat":50.6848,"lon":7.157,"desc":"Stadtbezirk Bad Godesberg mit den vorhandenen Ortsteilen und Einrichtungen.","address":"Bad Godesberg, Bonn"},{"id":"city-wesseling","name":"Wesseling","cat":"Stadt","lat":50.827,"lon":6.977,"desc":"Stadt am Rhein zwischen Köln und Bonn.","address":"Wesseling, Nordrhein-Westfalen"},{"id":"city-bornheim","name":"Bornheim","cat":"Stadt","lat":50.763,"lon":6.99,"desc":"Stadt zwischen Bonn und Brühl.","address":"Bornheim, Nordrhein-Westfalen"},{"id":"city-bruehl","name":"Brühl","cat":"Stadt","lat":50.829,"lon":6.905,"desc":"Stadt im Rhein-Erft-Kreis.","address":"Brühl, Nordrhein-Westfalen"},{"id":"city-huerth","name":"Hürth","cat":"Stadt","lat":50.877,"lon":6.867,"desc":"Stadt westlich von Köln.","address":"Hürth, Nordrhein-Westfalen"},{"id":"city-frechen","name":"Frechen","cat":"Stadt","lat":50.91,"lon":6.811,"desc":"Stadt westlich von Köln.","address":"Frechen, Nordrhein-Westfalen"},{"id":"city-koeln","name":"Köln","cat":"Stadt","lat":50.9383,"lon":6.9599,"desc":"Kölner Innenstadt – nördlicher Schwerpunkt des erweiterten Gebiets.","address":"Köln, Nordrhein-Westfalen"},{"id":"city-leverkusen","name":"Leverkusen","cat":"Stadt","lat":51.033,"lon":6.985,"desc":"Stadt nördlich von Köln.","address":"Leverkusen, Nordrhein-Westfalen"},{"id":"city-bergisch-gladbach","name":"Bergisch Gladbach","cat":"Stadt","lat":50.992,"lon":7.13,"desc":"Stadt östlich von Köln.","address":"Bergisch Gladbach, Nordrhein-Westfalen"},{"id":"city-troisdorf","name":"Troisdorf","cat":"Stadt","lat":50.815,"lon":7.155,"desc":"Stadt zwischen Köln und Bonn.","address":"Troisdorf, Nordrhein-Westfalen"},{"id":"city-siegburg","name":"Siegburg","cat":"Stadt","lat":50.8,"lon":7.205,"desc":"Kreisstadt östlich von Troisdorf.","address":"Siegburg, Nordrhein-Westfalen"},{"id":"city-koenigswinter","name":"Königswinter","cat":"Stadt","lat":50.677,"lon":7.19,"desc":"Stadt am Rhein südöstlich von Bad Godesberg.","address":"Königswinter, Nordrhein-Westfalen"}];
+places.push(...regionPlaces);
+const curatedRegionPlaces = [
+["bonn_muenster","Münsterplatz","Sehenswürdigkeit",50.7359,7.1003,"Zentraler Platz am Bonner Münster.","Münsterplatz, Bonn"],
+["bonn_beethoven","Beethoven-Haus","Museum",50.7372,7.0952,"Museum im Geburtshaus Ludwig van Beethovens.","Bonngasse 20, Bonn"],
+["bonn_poppelsdorf","Poppelsdorfer Schloss","Sehenswürdigkeit",50.7259,7.0927,"Historisches Schloss nahe dem Botanischen Garten.","Meckenheimer Allee, Bonn"],
+["bonn_rheinaue","Freizeitpark Rheinaue","Park",50.7086,7.1435,"Großer Landschaftspark am Rhein.","Ludwig-Erhard-Allee, Bonn"],
+["bonn_hbf","Bonn Hauptbahnhof","Bahnhof",50.7325,7.0963,"Zentraler Bahnhof mit Regional- und Stadtbahnanschlüssen.","Am Hauptbahnhof, Bonn"],
+["wesseling_rheinforum","Rheinforum Wesseling","Kultur",50.8271,6.9755,"Veranstaltungsort nahe dem Rheinufer.","Kölner Straße, Wesseling"],
+["wesseling_entenfang","Entenfang","Natur",50.8443,6.9824,"See und Naherholungsgebiet im Stadtgebiet.","Wesseling"],
+["wesseling_bahnhof","Bahnhof Wesseling","Bahnhof",50.8254,6.9741,"Stadtbahnanschluss in der Innenstadt.","Bahnhofstraße, Wesseling"],
+["bornheim_sechtem","Bahnhof Bornheim-Sechtem","Bahnhof",50.7795,6.9825,"Regionalbahnhof im Stadtgebiet Bornheim.","Sechtem, Bornheim"],
+["bornheim_rathaus","Rathaus Bornheim","Verwaltung",50.7635,6.9908,"Zentraler Verwaltungsstandort der Stadt.","Rathausstraße, Bornheim"],
+["bornheim_waldorf","Waldorf","Ortsteil",50.761,6.944,"Ortsteil im Vorgebirge.","Waldorf, Bornheim"],
+["bruehl_augustusburg","Schloss Augustusburg","Sehenswürdigkeit",50.8293,6.9067,"Barockes UNESCO-Welterbe-Schloss.","Schlossstraße, Brühl"],
+["bruehl_maxernst","Max Ernst Museum","Museum",50.8299,6.9078,"Museum für den Künstler Max Ernst.","Comesstraße 42, Brühl"],
+["bruehl_bahnhof","Bahnhof Brühl","Bahnhof",50.8288,6.9038,"Regionalbahnhof nahe der Innenstadt.","Bahnhofstraße, Brühl"],
+["huerth_park","Hürth Park","Einkaufszentrum",50.8773,6.8767,"Einkaufszentrum mit Geschäften und Gastronomie.","Theresienhöhe, Hürth"],
+["huerth_otto","Otto-Maigler-See","Natur",50.8737,6.8595,"Badesee und Naherholungsgebiet.","Hürth"],
+["huerth_kalscheuren","Bahnhof Hürth-Kalscheuren","Bahnhof",50.8702,6.9233,"Regionalbahnhof im Stadtgebiet Hürth.","Kalscheuren, Hürth"],
+["frechen_keramion","Keramion","Museum",50.9141,6.8065,"Museum für moderne und historische Keramik.","Bonnstraße 12, Frechen"],
+["frechen_bahnhof","Bahnhof Frechen","Bahnhof",50.9085,6.8116,"Endpunkt der Stadtbahnlinie 7.","Frechen"],
+["frechen_rathaus","Rathaus Frechen","Verwaltung",50.9102,6.811,"Verwaltungsstandort in der Innenstadt.","Johann-Schmitz-Platz, Frechen"],
+["koeln_dom","Kölner Dom","Sehenswürdigkeit",50.9413,6.9583,"Gotische Kathedrale und Wahrzeichen Kölns.","Domkloster 4, Köln"],
+["koeln_hbf","Köln Hauptbahnhof","Bahnhof",50.943,6.9585,"Fern- und Regionalbahnhof direkt am Dom.","Breslauer Platz, Köln"],
+["koeln_rheinauhafen","Rheinauhafen","Kultur",50.9285,6.965,"Uferquartier mit markanter moderner Architektur.","Im Zollhafen, Köln"],
+["koeln_flora","Flora und Botanischer Garten","Park",50.9574,6.9705,"Historischer Botanischer Garten im Norden der Innenstadt.","Amsterdamer Straße, Köln"],
+["koeln_zoo","Kölner Zoo","Freizeit",50.957,6.973,"Zoologischer Garten in Riehl.","Riehler Straße 173, Köln"],
+["leverkusen_bayer","BayArena","Sport",51.0382,7.0022,"Stadion von Bayer 04 Leverkusen.","Bismarckstraße, Leverkusen"],
+["leverkusen_morsbroich","Schloss Morsbroich","Museum",51.0345,7.055,"Schloss mit Museum für zeitgenössische Kunst.","Gustav-Heinemann-Straße, Leverkusen"],
+["leverkusen_neuland","Neuland-Park","Park",51.046,6.982,"Rheinpark mit Wegen und Freizeitflächen.","Nobelstraße, Leverkusen"],
+["bergisch_schloss","Schloss Bensberg","Sehenswürdigkeit",50.9652,7.1615,"Barockes Schloss mit Blick über die Region.","Kadettenstraße, Bergisch Gladbach"],
+["bergisch_bahnhof","Bahnhof Bergisch Gladbach","Bahnhof",50.9915,7.1277,"Endpunkt der S-Bahn-Linie S11.","Stationsstraße, Bergisch Gladbach"],
+["bergisch_forum","Bürgerhaus Bergischer Löwe","Kultur",50.9923,7.13,"Kultur- und Veranstaltungszentrum.","Konrad-Adenauer-Platz, Bergisch Gladbach"],
+["troisdorf_burg","Burg Wissem","Museum",50.8144,7.1554,"Wasserburg mit Museen und Lernangeboten.","Burgallee, Troisdorf"],
+["troisdorf_aggua","AGGUA Troisdorf","Schwimmbad",50.812,7.1605,"Freizeitbad und Saunalandschaft.","Aggerdamm, Troisdorf"],
+["troisdorf_bahnhof","Bahnhof Troisdorf","Bahnhof",50.813,7.1505,"Regional- und S-Bahn-Knotenpunkt.","Bahnhofstraße, Troisdorf"],
+["siegburg_michaelsberg","Michaelsberg","Sehenswürdigkeit",50.8008,7.2058,"Markanter Berg mit Abtei und Aussicht.","Michaelsberg, Siegburg"],
+["siegburg_bahnhof","Bahnhof Siegburg/Bonn","Bahnhof",50.7936,7.2050,"ICE- und Regionalbahnhof mit Stadtbahnanschluss.","Europaplatz, Siegburg"],
+["siegburg_markt","Marktplatz Siegburg","Sehenswürdigkeit",50.799,7.207,"Zentraler Platz in der Siegburger Innenstadt.","Markt, Siegburg"],
+["koenigswinter_drachenfels","Drachenfels","Sehenswürdigkeit",50.6618,7.21,"Aussichtspunkt im Siebengebirge über dem Rheintal.","Drachenfels, Königswinter"],
+["koenigswinter_drachenburg","Schloss Drachenburg","Sehenswürdigkeit",50.6628,7.207,"Historisches Schloss am Drachenfels.","Drachenfelsstraße, Königswinter"],
+["koenigswinter_sealife","SEA LIFE Königswinter","Freizeit",50.6765,7.1925,"Aquarium an der Rheinpromenade.","Rheinallee 8, Königswinter"]
+].map(a=>({id:a[0],name:a[1],cat:a[2],lat:a[3],lon:a[4],desc:a[5],address:a[6]}));
+
+// Feste Ortsdaten ergänzen die Stadtmarker. Overpass ist nur noch eine optionale Erweiterung.
+const existingPlaceIds = new Set(places.map(p=>p.id));
+for (const p of curatedRegionPlaces) {
+  if (!existingPlaceIds.has(p.id)) { places.push(p); existingPlaceIds.add(p.id); }
+}
+
+const REGION_BOUNDS=[[50.62,6.72],[51.07,7.27]];
+const $=id=>document.getElementById(id), esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+const ADMIN_MODE = true;
+const DEFAULT_CHANGELOG = [{"id":"log-100","version":"1.0","date":"02.11.2026","title":"Erste Version","details":"Start des Bad Godesberg Explorers mit interaktiver Karte, kuratiertem Ortsbestand, Kategorien, Wunschziel-/Besucht-Status, Bewertungen und Notizen sowie lokaler Datenspeicherung und JSON-Sicherung."},{"id":"log-110","version":"1.1","date":"02.11.2026","title":"Ortsbestand erweitert","details":"Der kuratierte Ortsbestand wurde deutlich erweitert. Zusätzliche Ortsteile und Einrichtungen kamen hinzu; die Anwendung wurde als persönlicher Entdecker- und Mobilitätsguide ausgebaut."},{"id":"log-120","version":"1.2","date":"02.11.2026","title":"Dynamische Einrichtungen","details":"OpenStreetMap-/Overpass-Daten ergänzten den festen Ortsbestand dynamisch. Kategorien und Kartenebenen wurden erweitert; persönlicher Status, Bewertungen und Notizen konnten als JSON gesichert und wieder importiert werden."},{"id":"log-130","version":"1.3","date":"02.11.2026","title":"Routen und Kartenstabilität","details":"Gespeicherte Routen kamen hinzu. Die Karteninitialisierung und das Laden von Leaflet wurden robuster gestaltet; die Routenansicht wurde um den Vergleich von Fußweg, Auto und ÖPNV-Auskunft ergänzt."},{"id":"log-140","version":"1.4","date":"02.11.2026","title":"Kompaktere Kategorien","details":"Die Karten- und Kategorienansicht wurde kompakter angeordnet und die Oberfläche überarbeitet."},{"id":"log-150","version":"1.5","date":"03.11.2026","title":"Status-Marker","details":"Die Marker erhielten klar unterscheidbare Farben: Blau für normale Orte, Rot für den ausgewählten Ort, Gelb für Wunschziele und Grün für besuchte Orte. Die Marker wurden beim Ändern des Status aktualisiert."},{"id":"log-160","version":"1.6","date":"04.11.2026","title":"Stabilitätsupdate","details":"Die Anwendung wurde in einer überarbeiteten Grundstruktur neu aufgebaut. Karten-, Orts-, Bewertungs-, Notiz- und Routenbereiche wurden in die kompaktere Oberfläche übernommen."},{"id":"log-161","version":"1.6.1","date":"06.11.2026","title":"Speicherfix – Ersatzspeicher getestet","details":"IndexedDB wurde als zusätzlicher Ersatzspeicher ausprobiert. In der Koder-Vorschau scheiterte der Zugriff jedoch am ungültigen Sicherheitskontext; dieser Ansatz war dort nicht zuverlässig nutzbar."},{"id":"log-162","version":"1.6.2","date":"11.11.2026","title":"Koder-Speicher- und Exportfix","details":"Der nicht nutzbare IndexedDB-Ansatz wurde entfernt. Bei blockiertem Browserspeicher bleiben Änderungen während der geöffneten Sitzung im Arbeitsspeicher. Der JSON-Text kann angezeigt, markiert und kopiert werden. Ortskategorien erhielten passende Symbole."},{"id":"log-163","version":"1.6.3","date":"11.11.2026","title":"Markerfix","details":"Wunschziel- und Besucht-Status behalten Vorrang vor der Auswahl. Gelbe und grüne Statusmarker bleiben dadurch auch nach dem Anklicken sichtbar."},{"id":"log-170","version":"1.7 Beta","date":"12.11.2026","title":"Gebietserweiterung, Changelog und Admin-Verwaltung","details":"Das Explorer-Gebiet wurde von Bonn/Bad Godesberg bis Köln und Umgebung erweitert. Wesseling, Bornheim, Brühl, Hürth, Frechen, Köln, Leverkusen, Bergisch Gladbach, Troisdorf, Siegburg und Königswinter sind als Gebietsziele enthalten. Eine Stadt-/Gebietsauswahl erleichtert das Anspringen der Bereiche; zusätzliche OSM-Einrichtungen werden über den erweiterten Kartenausschnitt geladen. Das Changelog ab Version 1.0 und der Bereich „Geplant für das nächste Update“ sind integriert. Nutzer- und Admin-Version sind getrennte HTML-Dateien; die Admin-Version kann Einträge und Planungen verwalten. JSON-Export/Import sichert nun auch Changelog und Planung. Bestehende Orts-, Bewertungs-, Notiz-, Marker-, Karten- und Routenfunktionen wurden in der neuen Version beibehalten. Die neuen Funktionen wurden mit Syntax- und UI-Simulationen geprüft; der abschließende Praxistest in Koder auf dem iPad steht noch aus."}];
+const CHANGELOG_180 = {"id":"log-180","version":"1.8.0","date":"23.11.2026","title":"Feedback, Kategorien und Darkmode","details":"Eine gemeinsame HTML-Datei vereint Nutzer- und Adminfunktionen. Nutzer können Ideen und Fehler über ein Feedbackformular an Supabase senden; das Feedbackpostfach mit Statusverwaltung ist nur nach erfolgreicher Admin-Anmeldung sichtbar und zusätzlich durch Supabase-RLS geschützt. Die Kategorien wurden thematisch gruppiert und um Unterkategorien für Gesundheit, Einkauf, Mobilität, Freizeit und Infrastruktur erweitert, ohne bestehende Ortskategorien umzubenennen oder Orte automatisch neu zuzuordnen. In den Einstellungen kann zwischen Lightmode und Darkmode gewechselt werden; die Auswahl wird lokal gespeichert. Karten-, Orts-, Routen-, Speicher-, Import-/Export- und bisherige Adminfunktionen bleiben erhalten."};
+function mergeChangelog(...sources){
+  const result=[],seen=new Set();
+  for(const source of sources){
+    if(!Array.isArray(source))continue;
+    for(const item of source){
+      if(!item||typeof item.version!=="string"||typeof item.title!=="string"||typeof item.details!=="string")continue;
+      const key=item.version.trim().toLowerCase();
+      if(!key||seen.has(key))continue;
+      seen.add(key);result.push(item);
+    }
+  }
+  if(!seen.has("1.8.0"))result.push(CHANGELOG_180);
+  return result;
+}
+const CHANGELOG_182 = {"id":"log-182","version":"1.8.2","date":"25.11.2026","title":"Fester Ortsbestand für alle Städte","details":"Für Bonn, Wesseling, Bornheim, Brühl, Hürth, Frechen, Köln, Leverkusen, Bergisch Gladbach, Troisdorf, Siegburg und Königswinter wurden feste Orte ergänzt. Die Kartenübersicht zeigt weiterhin zunächst die Städte; beim Hineinzoomen erscheinen die einzelnen Orte. Der optionale OpenStreetMap-/Overpass-Abruf nutzt Zeitlimits und mehrere Server. Wenn externe Ortsdaten nicht erreichbar sind, bleibt der feste Ortsbestand weiterhin verfügbar."};
+const DEFAULT_PLANNED = [];
+function cloneData(v){return JSON.parse(JSON.stringify(v));}
+function readStored(key,fallback){try{const raw=localStorage.getItem(key);if(raw===null)return cloneData(fallback);const value=JSON.parse(raw);return value===null?cloneData(fallback):value}catch(e){storageFallback=true;return cloneData(fallback)}}
+let storageFallback=false;
+let prefs=readStored("bgx-prefs",{}),savedRoutes=readStored("bgx-routes",[]);
+let changelog=readStored("bgx-changelog",DEFAULT_CHANGELOG),plannedItems=readStored("bgx-planned",DEFAULT_PLANNED);
+if(!prefs||typeof prefs!=="object"||Array.isArray(prefs))prefs={};
+if(!Array.isArray(savedRoutes))savedRoutes=[];
+if(!Array.isArray(changelog))changelog=cloneData(DEFAULT_CHANGELOG);
+changelog=mergeChangelog(changelog,[CHANGELOG_182],DEFAULT_CHANGELOG);
+if(!Array.isArray(plannedItems))plannedItems=[];
+let map=null,routeMap=null,markers={},selectedPlaceId=null;
+let editingLogId=null,editingPlanId=null;
+let currentTheme="light";
+try{
+  const savedTheme=localStorage.getItem("bgx-theme");
+  if(savedTheme==="light"||savedTheme==="dark")currentTheme=savedTheme;
+}catch(e){storageFallback=true;}
+function applyTheme(theme,persist=true){
+  currentTheme=theme==="dark"?"dark":"light";
+  document.body.dataset.theme=currentTheme;
+  const select=$("themeSelect");
+  if(select)select.value=currentTheme;
+  const status=$("themeStatus");
+  if(status)status.textContent=currentTheme==="dark"?"Darkmode ist aktiv.":"Lightmode ist aktiv.";
+  if(persist){
+    try{localStorage.setItem("bgx-theme",currentTheme);}
+    catch(e){
+      storageFallback=true;
+      if(status)status.textContent="Darstellung geändert, aber der lokale Speicher ist blockiert. Die Auswahl gilt nur bis zum Schließen dieser Sitzung.";
+    }
+  }
+}
+
+/* Koder-Vorschauen können localStorage blockieren.
+   In diesem Fall bleiben Änderungen während der aktuellen Sitzung im Arbeitsspeicher. */
+function storageMessage(message){
+  const s=$("importStatus");
+  if(s)s.textContent=message;
+}
+function pref(id){const v=prefs[id]||{};return{status:v.status||"",rating:Number(v.rating)||0,notes:Array.isArray(v.notes)?v.notes:[]}}
+function save(){
+  try{
+    localStorage.setItem("bgx-prefs",JSON.stringify(prefs));
+    localStorage.setItem("bgx-routes",JSON.stringify(savedRoutes));
+    localStorage.setItem("bgx-changelog",JSON.stringify(changelog));
+    localStorage.setItem("bgx-planned",JSON.stringify(plannedItems));
+    storageFallback=false;
+    if(ADMIN_MODE && cloudIsAdmin) void syncCloudData();
+    return true;
+  }catch(e){
+    storageFallback=true;
+    storageMessage("Lokaler Browserspeicher nicht verfügbar. Angemeldete Admin-Änderungen werden trotzdem zentral gespeichert; persönliche Daten bitte regelmäßig exportieren.");
+    if(ADMIN_MODE && cloudIsAdmin) void syncCloudData();
+    return false;
+  }
+}
+function icon(cat){return({
+  "Park":"🌳","Hotel":"🏨","Schule":"🏫","Kita":"🏢","Ortsteil":"🏘️",
+  "Sehenswürdigkeit":"🛕","Kirche":"🕍","Kultur":"🎭","Natur":"🌊",
+  "Verwaltung":"🏛️","Verwaltungseinrichtung":"🏛️","Bahnhof":"🚉",
+  "Schwimmbad":"🏊","Haltestelle":"🚏","ÖPNV-Haltestelle":"🚏",
+  "Museum":"🏛️","Sport":"⚽","Bildung":"📚","Gastronomie":"🍽️",
+  "Friedhof":"⚰️","Stadt":"🏙️","Arztpraxis":"🩺","Apotheke":"💊","Krankenhaus":"🏥","Pflegeeinrichtung":"🧑‍⚕️","Supermarkt":"🛒","Drogerie":"🧴","Einzelhandel":"🏬","Einkaufszentrum":"🛍️","Fahrrad":"🚲","Parkplatz":"🅿️","Tankstelle":"⛽","Ladestation":"🔌","Spielplatz":"🛝","Sporthalle":"🏟️","Freizeit":"🎯","Veranstaltungsort":"🎟️","Baustelle":"🚧","Leerstand":"🏚️","Öffentliche Toilette":"🚻","Bankautomat":"🏧","Postfiliale":"📮"
+})[cat]||"📍"}
+function markerIcon(p){
+  const s=pref(p.id).status;
+  // Wunschziel/Besucht haben Vorrang vor der Auswahl, damit der Status
+  // auch bei geöffneten Details und nach dem Anklicken sichtbar bleibt.
+  const k=s==="wish"?"wish":s==="visited"?"visited":selectedPlaceId===p.id?"selected":"normal";
+  return L.divIcon({className:"bgx-div-icon",html:`<div class="bgx-marker ${k}"><span>${icon(p.cat)}</span></div>`,iconSize:[34,42],iconAnchor:[17,40]})
+}
+function markerShouldShow(p){if(!map)return false;const filter=$("cat")?.value||"";if(filter&&p.cat!==filter)return false;return map.getZoom()<11?p.cat==="Stadt":p.cat!=="Stadt"}
+function updateMarkerVisibility(){if(!map)return;places.forEach(p=>{const m=markers[p.id];if(!m)return;if(markerShouldShow(p)){if(!map.hasLayer(m))m.addTo(map)}else if(map.hasLayer(m))map.removeLayer(m)})}
+function addMarker(p){if(!map||!window.L)return;let m=markers[p.id];if(m){m.setIcon(markerIcon(p));updateMarkerVisibility();return}m=L.marker([p.lat,p.lon],{icon:markerIcon(p)}).bindPopup(`<b>${esc(p.name)}</b><br>${esc(p.cat)}<br><button onclick="openDetail('${p.id}')">Details</button>`);m.on("click",()=>{selectedPlaceId=p.id;refreshMarkers()});markers[p.id]=m;if(markerShouldShow(p))m.addTo(map)}
+function refreshMarkers(){places.forEach(p=>{const m=markers[p.id];if(m)m.setIcon(markerIcon(p))});updateMarkerVisibility()}
+function renderPlaces(){const q=$("search").value.toLowerCase(),c=$("cat").value;const arr=places.filter(p=>(!c||p.cat===c)&&(!q||(p.name+" "+p.cat+" "+p.desc).toLowerCase().includes(q)));$("places").innerHTML=arr.map(p=>`<div class="place"><div class="row between"><h3>${icon(p.cat)} ${esc(p.name)}</h3><span class="pill">${esc(p.cat)}</span></div><p>${esc(p.desc)}</p><div class="actions"><button onclick="openDetail('${p.id}')">Details & bewerten</button><button onclick="showOnMap('${p.id}')">Karte</button></div></div>`).join("")||"<p>Keine passenden Orte gefunden.</p>"}
+function renderMine(){const arr=places.filter(p=>{const v=pref(p.id);return v.status||v.rating||v.notes.length});$("myPlaces").innerHTML=arr.map(p=>{const v=pref(p.id);return`<div class="place"><h3>${icon(p.cat)} ${esc(p.name)}</h3><p>${v.status==="wish"?"⭐ Wunschziel":v.status==="visited"?"✓ Besucht":"Ohne Status"} · <span class="star">${"★".repeat(v.rating)}${"☆".repeat(5-v.rating)}</span></p><p>${v.notes.length} Notiz(en)</p><div class="actions"><button onclick="openDetail('${p.id}')">Bearbeiten</button><button onclick="showOnMap('${p.id}')">Karte</button></div></div>`}).join("")||'<p class="muted">Du hast noch keine Orte markiert.</p>'}
+function openDetail(id){const p=places.find(x=>x.id===id);if(!p)return;const v=pref(id);selectedPlaceId=id;refreshMarkers();$("detailBody").innerHTML=`<h2>${icon(p.cat)} ${esc(p.name)}</h2><span class="pill">${esc(p.cat)}</span><p>${esc(p.desc)}</p><p class="small">${esc(p.address)}</p><div class="field"><label>Status</label><select id="dstatus"><option value="">Noch nicht markiert</option><option value="wish" ${v.status==="wish"?"selected":""}>⭐ Wunschziel</option><option value="visited" ${v.status==="visited"?"selected":""}>✓ Besucht</option></select></div><div class="field"><label>Deine Bewertung</label><select id="drating">${[0,1,2,3,4,5].map(n=>`<option value="${n}" ${v.rating===n?"selected":""}>${n===0?"Noch keine Bewertung":"★".repeat(n)+"☆".repeat(5-n)+" ("+n+"/5)"}</option>`).join("")}</select></div><div class="field"><label>Neue Notiz hinzufügen</label><textarea id="dnote" placeholder="Deine Eindrücke, Tipps, Erinnerungen …"></textarea></div><div class="actions"><button class="primary" id="saveDetail">Speichern</button><button id="cancelDetail">Schließen</button></div><h3>Deine Notizen</h3>${v.notes.map((n,i)=>`<div class="place"><p>${esc(n.text)}</p><span class="small">${esc(n.date)}</span> <button onclick="deleteNote('${id}',${i})">Löschen</button></div>`).join("")||'<p class="muted">Noch keine Notizen.</p>'}`;
+$("detail").showModal();$("cancelDetail").onclick=()=>$("detail").close();$("saveDetail").onclick=()=>{const note=$("dnote").value.trim();prefs[id]={status:$("dstatus").value,rating:Number($("drating").value),notes:v.notes};if(note)prefs[id].notes.push({text:note,date:new Date().toLocaleString("de-DE")});save();refreshMarkers();renderMine();$("detail").close()}}
+function deleteNote(id,i){const v=pref(id);v.notes.splice(i,1);prefs[id]=v;save();openDetail(id)}
+function showOnMap(id){document.querySelector('[data-tab="karte"]').click();const p=places.find(x=>x.id===id);if(!p)return;if(!map){alert("Karte nicht verfügbar. Internetverbindung prüfen.");return}selectedPlaceId=id;refreshMarkers();map.setView([p.lat,p.lon],16);markers[id]?.openPopup()}
+const CATEGORY_GROUPS=[
+  {label:"Städte & Stadtteile",categories:["Stadt","Ortsteil"]},
+  {label:"Sehenswürdigkeiten & Kultur",categories:["Sehenswürdigkeit","Kultur","Museum","Kirche","Friedhof"]},
+  {label:"Natur & Grünflächen",categories:["Park","Natur"]},
+  {label:"Bildung & Betreuung",categories:["Schule","Kita","Bildung"]},
+  {label:"Gesundheit & Pflege",categories:["Arztpraxis","Apotheke","Krankenhaus","Pflegeeinrichtung"]},
+  {label:"Einkaufen & Versorgung",categories:["Supermarkt","Drogerie","Einzelhandel","Einkaufszentrum","Gastronomie","Postfiliale","Bankautomat"]},
+  {label:"Mobilität & Verkehr",categories:["Bahnhof","Haltestelle","ÖPNV-Haltestelle","Fahrrad","Parkplatz","Tankstelle","Ladestation"]},
+  {label:"Freizeit & Sport",categories:["Sport","Schwimmbad","Spielplatz","Sporthalle","Freizeit","Veranstaltungsort"]},
+  {label:"Verwaltung & Infrastruktur",categories:["Verwaltung","Verwaltungseinrichtung","Baustelle","Leerstand","Öffentliche Toilette"]},
+  {label:"Übernachten",categories:["Hotel"]}
+];
+function setupCategories(){
+  const selected=$("cat").value;
+  const available=new Set([...places.map(p=>p.cat),...CATEGORY_GROUPS.flatMap(g=>g.categories)]);
+  let markup='<option value="">Alle Kategorien</option>';
+  const grouped=new Set();
+  for(const group of CATEGORY_GROUPS){
+    const cats=group.categories.filter(c=>available.has(c)).sort((a,b)=>a.localeCompare(b,"de"));
+    if(!cats.length)continue;
+    markup+=`<optgroup label="${esc(group.label)}">`+cats.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("")+"</optgroup>";
+    cats.forEach(c=>grouped.add(c));
+  }
+  const other=[...available].filter(c=>!grouped.has(c)).sort((a,b)=>a.localeCompare(b,"de"));
+  if(other.length)markup+='<optgroup label="Weitere Kategorien">'+other.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("")+"</optgroup>";
+  $("cat").innerHTML=markup;
+  $("cat").value=available.has(selected)?selected:"";
+}
+function renderSuggestions(){$("suggestions").innerHTML=places.map(p=>`<option value="${esc(p.name)}">`).join("")}
+function renderSavedRoutes(){$("savedRoutes").innerHTML=savedRoutes.map(r=>`<div class="place"><h3>🧭 ${esc(r.from)} → ${esc(r.to)}</h3><p class="small">${esc(r.created||"")}</p><div class="actions"><button class="primary" onclick="useSavedRoute('${r.id}')">Route erneut suchen</button><button onclick="deleteSavedRoute('${r.id}')">Löschen</button></div></div>`).join("")||'<p class="muted">Noch keine Routen gespeichert.</p>'}
+
+function versionCompare(a,b){const pa=String(a||"0").match(/\d+/g)||["0"],pb=String(b||"0").match(/\d+/g)||["0"];for(let i=0;i<Math.max(pa.length,pb.length);i++){const d=(Number(pa[i]||0)-Number(pb[i]||0));if(d)return d}return String(a).localeCompare(String(b),"de")}
+function renderChangelog(){const rows=[...changelog].sort((a,b)=>versionCompare(a.version,b.version));$("changelogList").innerHTML=rows.map(x=>`<article class="log-item"><div class="row between"><h3>Version ${esc(x.version)} · ${esc(x.title)}</h3><span class="pill">${esc(x.date||"")}</span></div><p class="log-text">${esc(x.details||"")}</p>${(ADMIN_MODE&&cloudIsAdmin)?`<div class="log-actions"><button data-edit-log="${esc(x.id)}">Bearbeiten</button><button data-delete-log="${esc(x.id)}">Löschen</button></div>`:""}</article>`).join("")||'<p class="muted">Noch keine Changelog-Einträge vorhanden.</p>'}
+function renderPlanned(){const rows=[...plannedItems].sort((a,b)=>(a.done===b.done?0:a.done?1:-1));$("plannedList").innerHTML=rows.map(x=>`<article class="place"><div class="row between"><h3>${esc(x.title)}</h3><span class="pill ${x.done?"status-done":"status-planned"}">${x.done?"Erledigt":"Geplant"}</span></div>${x.details?`<p class="log-text">${esc(x.details)}</p>`:""}${(ADMIN_MODE&&cloudIsAdmin)?`<div class="log-actions"><button data-toggle-plan="${esc(x.id)}">${x.done?"Wieder öffnen":"Als erledigt markieren"}</button><button data-edit-plan="${esc(x.id)}">Bearbeiten</button><button data-delete-plan="${esc(x.id)}">Löschen</button></div>`:""}</article>`).join("")||'<p class="muted">Aktuell sind noch keine Neuerungen eingetragen. Neue Punkte können in der Admin-Version ergänzt werden.</p>'}
+function resetLogForm(){editingLogId=null;$("logForm").reset();$("saveLog").textContent="Eintrag hinzufügen";$("cancelLogEdit").classList.add("hidden")}
+function resetPlanForm(){editingPlanId=null;$("planForm").reset();$("savePlan").textContent="Planung hinzufügen";$("cancelPlanEdit").classList.add("hidden")}
+function editLog(id){if(!ADMIN_MODE||!cloudIsAdmin)return;const x=changelog.find(v=>v.id===id);if(!x)return;editingLogId=id;$("logVersion").value=x.version||"";$("logDate").value="";$("logTitle").value=x.title||"";$("logDetails").value=x.details||"";$("saveLog").textContent="Eintrag speichern";$("cancelLogEdit").classList.remove("hidden");$("logForm").scrollIntoView({behavior:"smooth",block:"center"})}
+function deleteLog(id){if(!ADMIN_MODE||!cloudIsAdmin||!confirm("Diesen Changelog-Eintrag wirklich löschen?"))return;changelog=changelog.filter(x=>x.id!==id);save();renderChangelog()}
+function editPlan(id){if(!ADMIN_MODE||!cloudIsAdmin)return;const x=plannedItems.find(v=>v.id===id);if(!x)return;editingPlanId=id;$("planTitle").value=x.title||"";$("planDetails").value=x.details||"";$("savePlan").textContent="Planung speichern";$("cancelPlanEdit").classList.remove("hidden");$("planForm").scrollIntoView({behavior:"smooth",block:"center"})}
+function deletePlan(id){if(!ADMIN_MODE||!cloudIsAdmin||!confirm("Diesen Planungspunkt wirklich löschen?"))return;plannedItems=plannedItems.filter(x=>x.id!==id);save();renderPlanned()}
+function togglePlan(id){if(!ADMIN_MODE||!cloudIsAdmin)return;const x=plannedItems.find(v=>v.id===id);if(!x)return;x.done=!x.done;x.completedAt=x.done?new Date().toLocaleDateString("de-DE"):"";save();renderPlanned()}
+function setupChangelog(){$("editionLabel").textContent="Gemeinsame Version · Adminfunktionen nach Anmeldung";if(ADMIN_MODE){$("adminLogin").classList.remove("hidden");$("adminEditor").classList.add("hidden");$("adminWarning").textContent="Eine gemeinsame Datei: Der Explorer ist ohne Anmeldung normal nutzbar. Changelog-/Planungsverwaltung und Feedbackpostfach werden erst nach erfolgreicher Admin-Anmeldung freigeschaltet. Supabase Auth und Row-Level-Security prüfen die Berechtigungen serverseitig.";$("adminWarning").classList.remove("hidden");$("logForm").addEventListener("submit",e=>{e.preventDefault();const version=$("logVersion").value.trim(),title=$("logTitle").value.trim(),details=$("logDetails").value.trim();if(!version||!title||!details)return;const date=$("logDate").value?new Date($("logDate").value+"T12:00:00").toLocaleDateString("de-DE"):new Date().toLocaleDateString("de-DE");if(editingLogId){const x=changelog.find(v=>v.id===editingLogId);if(x)Object.assign(x,{version,date,title,details})}else changelog.push({id:"log-"+Date.now()+"-"+Math.random().toString(16).slice(2,6),version,date,title,details});save();resetLogForm();renderChangelog()});$("cancelLogEdit").addEventListener("click",resetLogForm);$("planForm").addEventListener("submit",e=>{e.preventDefault();const title=$("planTitle").value.trim(),details=$("planDetails").value.trim();if(!title)return;if(editingPlanId){const x=plannedItems.find(v=>v.id===editingPlanId);if(x)Object.assign(x,{title,details})}else plannedItems.push({id:"plan-"+Date.now()+"-"+Math.random().toString(16).slice(2,6),title,details,done:false});save();resetPlanForm();renderPlanned()});$("cancelPlanEdit").addEventListener("click",resetPlanForm)}$("changelogList").addEventListener("click",e=>{const a=e.target.closest("[data-edit-log]"),d=e.target.closest("[data-delete-log]");if(a)editLog(a.dataset.editLog);if(d)deleteLog(d.dataset.deleteLog)});$("plannedList").addEventListener("click",e=>{const t=e.target.closest("[data-toggle-plan]"),a=e.target.closest("[data-edit-plan]"),d=e.target.closest("[data-delete-plan]");if(t)togglePlan(t.dataset.togglePlan);if(a)editPlan(a.dataset.editPlan);if(d)deletePlan(d.dataset.deletePlan)});renderChangelog();renderPlanned()}
+
+
+let feedbackCache=[];
+function setFeedbackMessage(message){const el=$("feedbackStatus");if(el)el.textContent=message;}
+function setFeedbackAdminMessage(message){const el=$("feedbackAdminStatus");if(el)el.textContent=message;}
+async function submitFeedback(event){
+  event.preventDefault();
+  const kind=$("feedbackKind").value;
+  const title=$("feedbackTitle").value.trim();
+  const message=$("feedbackMessage").value.trim();
+  const contact=$("feedbackContact").value.trim();
+  if(!["Idee","Fehler"].includes(kind)||!title||!message){setFeedbackMessage("Bitte Art, Titel und Beschreibung ausfüllen.");return;}
+  if(!cloudClient){setFeedbackMessage("Feedback konnte nicht gesendet werden: Die Supabase-Verbindung ist nicht verfügbar. Bitte später erneut versuchen.");return;}
+  const button=$("sendFeedback");button.disabled=true;button.textContent="Wird gesendet …";
+  try{
+    const {error}=await cloudClient.from("explorer_feedback").insert({kind,title,message,contact:contact||null,status:"Offen"});
+    if(error)throw error;
+    $("feedbackForm").reset();
+    setFeedbackMessage("Danke! Dein Feedback wurde erfolgreich übermittelt.");
+  }catch(error){
+    setFeedbackMessage("Feedback konnte nicht gesendet werden: "+(error?.message||String(error))+". Prüfe, ob die Tabelle explorer_feedback über die Supabase-API freigegeben ist und die INSERT-RLS-Regel für anonyme Nutzer aktiv ist.");
+  }finally{button.disabled=false;button.textContent="Feedback senden";}
+}
+function renderAdminFeedback(){
+  const list=$("feedbackAdminList");if(!list)return;
+  if(!cloudIsAdmin){list.innerHTML="";return;}
+  if(!feedbackCache.length){list.innerHTML='<p class="muted">Noch keine Feedbackmeldungen vorhanden.</p>';return;}
+  list.innerHTML=feedbackCache.map(item=>{
+    const date=item.created_at?new Date(item.created_at).toLocaleString("de-DE"):"";
+    const status=["Offen","In Bearbeitung","Erledigt"].includes(item.status)?item.status:"Offen";
+    return `<article class="log-item">
+      <div class="row between"><h3>${item.kind==="Fehler"?"🐛 Fehler":"💡 Idee"} · ${esc(item.title||"Ohne Titel")}</h3><span class="pill">${esc(date)}</span></div>
+      <p class="log-text">${esc(item.message||"")}</p>
+      ${item.contact?`<p class="small">Kontakt: ${esc(item.contact)}</p>`:""}
+      <div class="actions">
+        <label class="small" for="feedback-status-${esc(item.id)}">Status</label>
+        <select id="feedback-status-${esc(item.id)}" data-feedback-status="${esc(item.id)}">
+          <option value="Offen" ${status==="Offen"?"selected":""}>Offen</option>
+          <option value="In Bearbeitung" ${status==="In Bearbeitung"?"selected":""}>In Bearbeitung</option>
+          <option value="Erledigt" ${status==="Erledigt"?"selected":""}>Erledigt</option>
+        </select>
+        <button type="button" data-feedback-delete="${esc(item.id)}">Löschen</button>
+      </div>
+    </article>`;
+  }).join("");
+}
+async function loadAdminFeedback(){
+  if(!cloudIsAdmin||!cloudClient)return;
+  setFeedbackAdminMessage("Feedback wird geladen …");
+  try{
+    const {data,error}=await cloudClient.from("explorer_feedback")
+      .select("id,kind,title,message,contact,status,created_at")
+      .order("created_at",{ascending:false}).limit(100);
+    if(error)throw error;
+    feedbackCache=Array.isArray(data)?data:[];
+    renderAdminFeedback();
+    setFeedbackAdminMessage(feedbackCache.length+" Feedbackmeldung(en) geladen.");
+  }catch(error){
+    feedbackCache=[];renderAdminFeedback();
+    setFeedbackAdminMessage("Feedbackpostfach nicht erreichbar: "+(error?.message||String(error))+". Prüfe API-Schema-Freigabe sowie SELECT-/RLS-Regel für Admins.");
+  }
+}
+async function updateFeedbackStatus(id,status){
+  if(!cloudIsAdmin||!cloudClient||!["Offen","In Bearbeitung","Erledigt"].includes(status))return;
+  try{
+    const {error}=await cloudClient.from("explorer_feedback").update({status}).eq("id",id);
+    if(error)throw error;
+    setFeedbackAdminMessage("Status gespeichert.");await loadAdminFeedback();
+  }catch(error){setFeedbackAdminMessage("Status konnte nicht gespeichert werden: "+(error?.message||String(error)));}
+}
+async function deleteFeedback(id){
+  if(!cloudIsAdmin||!cloudClient||!confirm("Diese Feedbackmeldung wirklich löschen?"))return;
+  try{
+    const {error}=await cloudClient.from("explorer_feedback").delete().eq("id",id);
+    if(error)throw error;
+    setFeedbackAdminMessage("Feedbackmeldung gelöscht.");await loadAdminFeedback();
+  }catch(error){setFeedbackAdminMessage("Feedbackmeldung konnte nicht gelöscht werden: "+(error?.message||String(error)));}
+}
+
+function switchTab(id){document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.tab===id));["karte","routen","favoriten","meinerouten","daten","feedback","settings","changelog"].forEach(x=>$(x).classList.toggle("hidden",x!==id));if(id==="karte"&&map)setTimeout(()=>map.invalidateSize(),150);if(id==="routen"&&routeMap)setTimeout(()=>routeMap.invalidateSize(),150);if(id==="meinerouten")renderSavedRoutes();if(id==="feedback"&&cloudIsAdmin)void loadAdminFeedback();if(id==="changelog"){renderChangelog();renderPlanned()}}
+document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>switchTab(b.dataset.tab)));
+$("region").addEventListener("change",()=>{if(!map)return;const id=$("region").value;if(id==="all"){map.fitBounds(REGION_BOUNDS,{padding:[18,18]});return}const p=places.find(x=>x.id===id);if(p)map.setView([p.lat,p.lon],11)});
+$("search").addEventListener("input",renderPlaces);$("cat").addEventListener("change",()=>{renderPlaces();updateMarkerVisibility()});
+$("closeDialog").onclick=()=>$("detail").close();
+$("themeSelect").addEventListener("change",()=>applyTheme($("themeSelect").value,true));
+$("feedbackForm").addEventListener("submit",submitFeedback);
+$("refreshFeedback").addEventListener("click",()=>void loadAdminFeedback());
+$("feedbackAdminList").addEventListener("change",event=>{
+  const select=event.target.closest("[data-feedback-status]");
+  if(select)void updateFeedbackStatus(select.dataset.feedbackStatus,select.value);
+});
+$("feedbackAdminList").addEventListener("click",event=>{
+  const button=event.target.closest("[data-feedback-delete]");
+  if(button)void deleteFeedback(button.dataset.feedbackDelete);
+});
+let osmLoading=false,osmLastBox="",osmLoadedIds=new Set();
+function osmCategory(t){const a=t.amenity,l=t.leisure,v=t.tourism,h=t.historic,sh=t.shop;
+if(["school","college","university"].includes(a))return "Schule";if(["kindergarten","childcare"].includes(a))return "Kita";
+if(["hospital","clinic"].includes(a))return "Krankenhaus";if(["doctors","dentist","pharmacy"].includes(a))return a==="pharmacy"?"Apotheke":"Arztpraxis";
+if(a==="place_of_worship")return "Kirche";if(["restaurant","cafe","fast_food","bar"].includes(a))return "Gastronomie";
+if(["townhall","courthouse","police","fire_station","post_office"].includes(a)||t.office==="government")return "Verwaltungseinrichtung";
+if(t.highway==="bus_stop"||["station","halt","tram_stop"].includes(t.railway))return "ÖPNV-Haltestelle";
+if(["museum","gallery"].includes(v))return "Museum";if(["attraction","theme_park","zoo","viewpoint","artwork","hotel","guest_house","hostel"].includes(v))return ["hotel","guest_house","hostel"].includes(v)?"Hotel":"Sehenswürdigkeit";
+if(["park","garden","playground","sports_centre","stadium","pitch"].includes(l))return ["park","garden"].includes(l)?"Park":l==="playground"?"Spielplatz":"Sport";
+if(h)return "Sehenswürdigkeit";if(sh){if(["supermarket","convenience"].includes(sh))return "Supermarkt";if(sh==="chemist")return "Drogerie";return "Einzelhandel"}
+if(a==="parking")return "Parkplatz";if(a==="fuel")return "Tankstelle";if(a==="charging_station")return "Ladestation";return ""}
+async function loadOSM(){
+  if(!map||map.getZoom()<11||osmLoading)return;
+  const b=map.getBounds(),box=[b.getSouth(),b.getWest(),b.getNorth(),b.getEast()].map(v=>v.toFixed(3)).join(",");
+  if(box===osmLastBox)return;
+  osmLastBox=box;osmLoading=true;
+  const status=$("osmstatus");
+  const query=`[out:json][timeout:25];(nwr["name"]["amenity"](${box});nwr["name"]["leisure"](${box});nwr["name"]["tourism"](${box});nwr["name"]["historic"](${box});nwr["name"]["shop"](${box});nwr["name"]["railway"](${box});nwr["name"]["highway"="bus_stop"](${box});nwr["name"]["office"](${box}););out center tags;`;
+  const endpoints=[
+    "https://overpass-api.de/api/interpreter",
+    "https://overpass.kumi.systems/api/interpreter",
+    "https://overpass.nchc.org.tw/api/interpreter"
+  ];
+  try{
+    let data=null,lastError=null;
+    for(const endpoint of endpoints){
+      const controller=new AbortController();
+      const timeout=setTimeout(()=>controller.abort(),18000);
+      try{
+        const url=endpoint+"?data="+encodeURIComponent(query);
+        const response=await fetch(url,{signal:controller.signal,headers:{Accept:"application/json"}});
+        if(!response.ok)throw new Error("HTTP "+response.status);
+        data=await response.json();
+        break;
+      }catch(error){lastError=error;}
+      finally{clearTimeout(timeout);}
+    }
+    if(!data)throw lastError||new Error("Keine Overpass-Instanz erreichbar");
+    let added=0;
+    for(const e of data.elements||[]){
+      const t=e.tags||{},name=t.name||t["name:de"],cat=osmCategory(t);
+      const lat=e.lat??e.center?.lat,lon=e.lon??e.center?.lon,id="osm-"+e.type+"-"+e.id;
+      if(!name||!cat||typeof lat!=="number"||typeof lon!=="number"||osmLoadedIds.has(id)||places.some(p=>p.id===id))continue;
+      const p={id,name,cat,lat,lon,desc:cat+" laut OpenStreetMap.",address:[t["addr:street"],t["addr:housenumber"],t["addr:city"]||t["is_in:city"]].filter(Boolean).join(" ")};
+      places.push(p);osmLoadedIds.add(id);added++;addMarker(p);
+    }
+    setupCategories();renderPlaces();renderMine();renderSuggestions();updateMarkerVisibility();
+    status.textContent=added?added+" zusätzliche Orte aus OpenStreetMap geladen.":"Keine weiteren benannten OSM-Orte im aktuellen Kartenausschnitt gefunden. Der feste Ortsbestand bleibt verfügbar.";
+  }catch(error){
+    status.textContent="Zusätzliche OSM-Daten gerade nicht erreichbar. Der feste Ortsbestand für alle Städte bleibt verfügbar.";
+  }finally{osmLoading=false;}
+}
+async function geocode(q){const p=places.find(x=>x.name.toLowerCase()===q.toLowerCase());if(p)return{lat:p.lat,lon:p.lon,name:p.name};const r=await fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q="+encodeURIComponent(q+", Nordrhein-Westfalen, Deutschland"));const a=await r.json();if(!a[0])throw Error("Ort nicht gefunden: "+q);return{lat:+a[0].lat,lon:+a[0].lon,name:q}}
+async function getRoute(profile,a,b){const u=`https://router.project-osrm.org/route/v1/${profile}/${a.lon},${a.lat};${b.lon},${b.lat}?overview=full&geometries=geojson`,r=await fetch(u),j=await r.json();if(!j.routes?.length)throw Error("Keine Route gefunden");return j.routes[0]}
+$("goRoute").onclick=async()=>{const from=$("from").value.trim(),to=$("to").value.trim(),out=$("routeResults");if(!from||!to){out.innerHTML="<p>Bitte Start und Ziel eingeben.</p>";return}out.innerHTML="<p>Suche Routen …</p>";try{const[a,b]=await Promise.all([geocode(from),geocode(to)]),[walk,car]=await Promise.all([getRoute("foot",a,b),getRoute("driving",a,b)]);out.innerHTML=`<div class="routebox"><strong>🚶 Fußweg</strong>${(walk.distance/1000).toFixed(1)} km<br>ca. ${Math.round(walk.duration/60)} Min.</div><div class="routebox"><strong>🚗 Auto</strong>${(car.distance/1000).toFixed(1)} km<br>ca. ${Math.round(car.duration/60)} Min. <span class="small">ohne Live-Verkehr</span></div><div class="routebox"><strong>🚌 ÖPNV</strong>Fahrplanauskunft<br><a target="_blank" rel="noopener" href="https://www.vrs.de/fahren/fahrplanauskunft">VRS-Verbindung öffnen ↗</a></div><div class="routebox"><strong>💾 Route merken</strong><button class="primary" id="saveRoute">Route speichern</button></div>`;$("saveRoute").onclick=()=>{savedRoutes.unshift({id:"r-"+Date.now(),from,to,created:new Date().toLocaleString("de-DE")});savedRoutes=savedRoutes.slice(0,100);save();renderSavedRoutes();alert("Route gespeichert.")};if(routeMap)routeMap.remove();routeMap=L.map("routeMap").setView([a.lat,a.lon],13);L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"© OpenStreetMap"}).addTo(routeMap);L.marker([a.lat,a.lon]).addTo(routeMap).bindPopup("Start");L.marker([b.lat,b.lon]).addTo(routeMap).bindPopup("Ziel");const line=L.geoJSON(walk.geometry,{style:{color:"#147b9b",weight:5}}).addTo(routeMap);L.geoJSON(car.geometry,{style:{color:"#d28b25",weight:4,dashArray:"7 6"}}).addTo(routeMap);routeMap.fitBounds(line.getBounds(),{padding:[20,20]})}catch(e){out.innerHTML=`<div class="notice">${esc(e.message)}. Prüfe Schreibweise oder vollständige Adresse.</div>`}};
+$("swap").onclick=()=>{const a=$("from"),b=$("to");[a.value,b.value]=[b.value,a.value]};
+$("export").onclick=()=>{
+  const payload={app:"Bad Godesberg Explorer",version:5,exported:new Date().toISOString(),prefs,savedRoutes,changelog,plannedItems,theme:currentTheme};
+  const json=JSON.stringify(payload,null,2);
+  $("exportJson").value=json;
+  $("exportFallback").classList.remove("hidden");
+  $("importStatus").textContent="Sicherung erstellt. Du kannst den JSON-Text kopieren oder markieren.";
+  $("exportJson").focus();
+};
+$("copyExport").onclick=async()=>{
+  const field=$("exportJson");
+  try{
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      await navigator.clipboard.writeText(field.value);
+      $("importStatus").textContent="JSON wurde in die Zwischenablage kopiert.";
+    }else{
+      field.focus();field.select();
+      const ok=document.execCommand&&document.execCommand("copy");
+      $("importStatus").textContent=ok?"JSON wurde kopiert.":"Bitte den markierten Text manuell kopieren.";
+    }
+  }catch(e){
+    field.focus();field.select();
+    $("importStatus").textContent="Automatisches Kopieren nicht möglich. Bitte den markierten Text manuell kopieren.";
+  }
+};
+$("selectExport").onclick=()=>{
+  const field=$("exportJson");field.focus();field.select();
+  $("importStatus").textContent="Der JSON-Text ist markiert. Wähle „Kopieren“.";
+};
+$("importBtn").onclick=()=>$("importFile").click();$("importFile").onchange=async e=>{const f=e.target.files?.[0];if(!f)return;try{const j=JSON.parse(await f.text());if(!j||typeof j.prefs!=="object"||!j.prefs)throw Error("Ungültige Sicherungsdatei");prefs={...prefs,...j.prefs};if(Array.isArray(j.savedRoutes))savedRoutes=j.savedRoutes.filter(x=>x&&typeof x.from==="string"&&typeof x.to==="string");if(Array.isArray(j.changelog))changelog=j.changelog.filter(x=>x&&typeof x.version==="string"&&typeof x.title==="string"&&typeof x.details==="string").map(x=>({...x,id:String(x.id||("log-"+Date.now()+"-"+Math.random().toString(16).slice(2,6))),date:String(x.date||"")}));if(Array.isArray(j.plannedItems))plannedItems=j.plannedItems.filter(x=>x&&typeof x.title==="string").map(x=>({...x,id:String(x.id||("plan-"+Date.now()+"-"+Math.random().toString(16).slice(2,6))),details:String(x.details||""),done:!!x.done}));changelog=mergeChangelog(changelog,DEFAULT_CHANGELOG);if(j.theme==="light"||j.theme==="dark")applyTheme(j.theme,true);const persisted=save();renderMine();renderSavedRoutes();renderChangelog();renderPlanned();$("importStatus").textContent=persisted?"Import erfolgreich: Orte, Routen, Changelog und Planung wurden übernommen.":"Import in diese Sitzung übernommen. Bitte direkt eine JSON-Sicherung exportieren, da Koder den Browserspeicher blockiert."}catch(err){$("importStatus").textContent="Import fehlgeschlagen: "+err.message}finally{e.target.value=""}};
+window.openDetail=openDetail;window.showOnMap=showOnMap;window.deleteNote=deleteNote;window.useSavedRoute=id=>{const r=savedRoutes.find(x=>x.id===id);if(!r)return;$("from").value=r.from;$("to").value=r.to;switchTab("routen");$("goRoute").click()};window.deleteSavedRoute=id=>{savedRoutes=savedRoutes.filter(x=>x.id!==id);save();renderSavedRoutes()};
+function init(){applyTheme(currentTheme,false);setupCategories();renderPlaces();renderMine();renderSavedRoutes();renderSuggestions();setupChangelog();if(storageFallback)storageMessage("Koder blockiert den Browserspeicher. Änderungen bleiben nur in dieser geöffneten Vorschau erhalten – bitte regelmäßig exportieren.");if(!window.L){$("mapstatus").textContent="Leaflet konnte nicht geladen werden. Internetverbindung prüfen.";return}try{map=L.map("map").setView([50.84,6.98],9);L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);places.forEach(addMarker);map.fitBounds(REGION_BOUNDS,{padding:[18,18]});updateMarkerVisibility();let osmTimer=null;map.on("zoomend",()=>{updateMarkerVisibility();if(map.getZoom()>=11){clearTimeout(osmTimer);osmTimer=setTimeout(loadOSM,650)}});map.on("moveend",()=>{if(map.getZoom()>=11){clearTimeout(osmTimer);osmTimer=setTimeout(loadOSM,650)}});$("mapstatus").textContent="Übersicht: Städte. Ab Zoomstufe 11 erscheinen einzelne Orte.";setTimeout(()=>map.invalidateSize(),300)}catch(e){$("mapstatus").textContent="Kartenfehler: "+e.message;$("osmstatus").textContent="Die Ortsliste bleibt weiterhin nutzbar."}}
+
+// Gemeinsame Changelog-/Planungsdaten in Supabase.
+// Der Publishable Key ist für Browser-Apps vorgesehen; RLS schützt Schreibzugriffe.
+const SUPABASE_URL = "https://ngudboibfcpehkimhbdc.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_BR65RPckSobf6bn7D-Gojg_BF1Xm4zH";
+let cloudClient = null;
+let cloudIsAdmin = false;
+let cloudReady = false;
+function authStatus(message){const el=$("authStatus");if(el)el.textContent=message;}
+function setAdminAccess(isAdmin,user){
+  cloudIsAdmin=!!isAdmin;
+  if(!ADMIN_MODE)return;
+  $("adminLoginFields").classList.toggle("hidden",cloudIsAdmin);
+  $("adminEditor").classList.toggle("hidden",!cloudIsAdmin);
+  $("adminLogout").classList.toggle("hidden",!user);
+  $("adminFeedbackPanel").classList.toggle("hidden",!cloudIsAdmin);
+  $("editionLabel").textContent=cloudIsAdmin?"Gemeinsame Version · Admin angemeldet":"Gemeinsame Version · Adminfunktionen nach Anmeldung";
+  if(user&&!cloudIsAdmin)authStatus("Dieses Konto ist nicht als Admin freigeschaltet.");
+  if(cloudIsAdmin)authStatus("Admin-Berechtigung bestätigt. Änderungen werden zentral gespeichert.");
+  if(cloudIsAdmin)void loadAdminFeedback();
+  else{
+    feedbackCache=[];
+    $("feedbackAdminList").innerHTML="";
+    $("feedbackAdminStatus").textContent="Admin-Anmeldung erforderlich.";
+  }
+  if(ADMIN_MODE){renderChangelog();renderPlanned();}
+}
+async function loadCloudData(){
+  if(!cloudClient)return;
+  const {data,error}=await cloudClient.from("explorer_public_data").select("changelog,planned_items").eq("id",1).maybeSingle();
+  if(error){const el=$("cloudStatus");if(el)el.textContent="Supabase noch nicht eingerichtet: bitte SQL-Setup ausführen. Lokale Daten bleiben verfügbar.";return;}
+  if(data){
+    if(Array.isArray(data.changelog)&&data.changelog.length)changelog=mergeChangelog(data.changelog,changelog,DEFAULT_CHANGELOG);
+    if(Array.isArray(data.planned_items)&&data.planned_items.length)plannedItems=data.planned_items;
+    renderChangelog();renderPlanned();
+    if(!data.changelog?.length && ADMIN_MODE && cloudIsAdmin)await syncCloudData();
+  }
+  cloudReady=true;
+  const el=$("cloudStatus");if(el)el.textContent="Zentrale Changelog-Datenbank verbunden. Änderungen werden zwischen Nutzer- und Admin-Version geteilt.";
+}
+async function syncCloudData(){
+  if(!cloudClient||!cloudIsAdmin)return;
+  const {error}=await cloudClient.from("explorer_public_data").update({changelog,planned_items:plannedItems,updated_at:new Date().toISOString()}).eq("id",1);
+  if(error)authStatus("Zentrale Speicherung fehlgeschlagen: "+error.message);
+  else authStatus("Änderungen erfolgreich zentral gespeichert.");
+}
+async function initCloud(){
+  if(!window.supabase?.createClient){const el=$("cloudStatus");if(el)el.textContent="Supabase-Bibliothek konnte nicht geladen werden. Lokale Funktionen bleiben verfügbar.";$("feedbackStatus").textContent="Feedbackversand ist derzeit nicht verfügbar, weil die Supabase-Bibliothek nicht geladen wurde.";return;}
+  cloudClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+  if(ADMIN_MODE){
+    setAdminAccess(false,null);
+    const {data:{session}}=await cloudClient.auth.getSession();
+    if(session){const role=session.user?.app_metadata?.role==="admin";setAdminAccess(role,session.user);}
+    $("adminLoginBtn").addEventListener("click",async()=>{
+      const email=$("adminEmail").value.trim(),password=$("adminPassword").value;
+      if(!email||!password){authStatus("Bitte E-Mail und Passwort eingeben.");return;}
+      authStatus("Anmeldung läuft …");
+      const {data,error}=await cloudClient.auth.signInWithPassword({email,password});
+      if(error){authStatus("Anmeldung fehlgeschlagen: "+error.message);return;}
+      const allowed=data.user?.app_metadata?.role==="admin";
+      setAdminAccess(allowed,data.user);
+      if(allowed)await syncCloudData();
+    });
+    $("adminLogout").addEventListener("click",async()=>{await cloudClient.auth.signOut();setAdminAccess(false,null);authStatus("Abgemeldet.");});
+    cloudClient.auth.onAuthStateChange((_event,session)=>{
+      const user=session?.user||null;
+      setAdminAccess(!!user&&user.app_metadata?.role==="admin",user);
+    });
+  }
+  await loadCloudData();
+}
+
+init();
+initCloud();
+</script>
+</body></html>
